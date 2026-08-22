@@ -1,6 +1,6 @@
 # 第 1 章：从程序到进程
 
-[返回仓库首页](../README.md) · [查看操作系统知识地图](00-operating-system-knowledge-map.md) · [查看 Q001](../questions/README.md#q001程序进程内存文件与语言)
+[返回仓库首页](../README.md) · [查看操作系统知识地图](00-operating-system-knowledge-map.md) · [查看 Q001](../questions/README.md#q001程序进程内存文件与语言) · [进入第 2 章：CPU、上下文与指令](02-cpu-context-registers-and-instructions.md)
 
 ## 1. 本章要解决什么
 
@@ -205,6 +205,14 @@ flowchart LR
 - 只读代码页可以安全地映射到同一个物理页框。
 - 可写数据通常映射到不同物理页框，避免一个进程随意修改另一个进程的数据。
 - 某个虚拟页可以暂时没有物理页；第一次访问时再由内核处理。
+
+#### 外部图解：把“连续的虚拟地址”与“离散的物理页框”同时看见
+
+![一张教学示意图：左边是连续的虚拟地址空间，右边是离散的物理地址空间；箭头把虚拟区域连接到不同的物理页框。](../assets/images/virtual-address-space-physical-address-space.svg)
+
+观察这张图时，先只看两件事：左边是进程看到的连续编号，右边是实际物理页框；中间的箭头说明两边不是按相同位置直接对应。蓝色表示当前进程映射或可使用的页面，但不一定由它独占；只读共享页也可能同时映射给其他进程。粉色表示未映射给当前进程的物理页框。这正是“同一个虚拟地址数字不必等于物理位置”的直观版本。
+
+它采用的是较早的 32 位教学布局，图中的固定地址、`text/data/stack` 位置和箭头数量都**不是**现代系统的通用规则；本章的 Mermaid 图负责补充“两个进程、共享代码页、按需调页”的关系。来源：[Virtual address space and physical address space relationship.svg](https://commons.wikimedia.org/wiki/File:Virtual_address_space_and_physical_address_space_relationship.svg)，作者 Stannered（描摹）、原作者 Dysprosia，3-Clause BSD License，访问日期 2026-08-22；本仓库原样保存。完整许可见[图片署名与许可](../assets/images/ATTRIBUTION.md#virtual-address-space-physical-address-spacesvg)。
 
 ### 4.2 地址簿类比及其边界
 
