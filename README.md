@@ -13,6 +13,7 @@
 | [第 2 章：CPU、上下文与指令](docs/02-cpu-context-registers-and-instructions.md) | 理解寄存器、地址空间、PID、PCB、上下文切换、并发和代码执行路径 | 已整理，待复习 |
 | [问题档案](questions/README.md) | 保存原始问题、待澄清连接、对应章节和复习状态 | Q001、Q002 已登记 |
 | [外部图片署名与许可](assets/images/ATTRIBUTION.md) | 查看已本地保存的开放许可教学图片、来源和使用边界 | 已引入 2 张 |
+| [用户提问原图档案](assets/questions/README.md) | 保留用户提问时附带的原图，并连接到对应解释 | Q002 已归档 |
 
 ## 当前学习主线
 
