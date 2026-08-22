@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" role="img" aria-labelledby="title desc">
+  <title id="title">用户态程序进入内核的三条受控路径</title>
+  <desc id="desc">用户程序不能直接把自己切换到内核模式。它只能通过系统调用，或者由外部硬件中断、当前指令触发的同步异常，经 CPU 的受控入口进入内核。内核处理后可能受控返回被打断的线程，也可能返回错误、让线程等待或调度其他线程。</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2563eb"/></marker>
+    <marker id="arrowOrange" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#ea580c"/></marker>
+    <marker id="arrowPurple" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#7c3aed"/></marker>
+    <marker id="arrowGreen" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#16a34a"/></marker>
+    <style>
+      .font { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; fill: #172554; }
+      .title { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 39px; font-weight: 700; fill: #0f172a; }
+      .subtitle { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 21px; fill: #475569; }
+      .head { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 26px; font-weight: 700; fill: #172554; }
+      .label { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 20px; fill: #1e293b; }
+      .small { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 17px; fill: #334155; }
+      .tiny { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 15px; fill: #475569; }
+      .white { fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="920" fill="#f8fafc"/>
+  <rect x="24" y="20" width="1552" height="100" rx="22" fill="#e0f2fe"/>
+  <text x="65" y="66" class="title">普通应用如何“受控地”进入内核：三类常见路径</text>
+  <text x="65" y="100" class="subtitle">用户态不是不能请求内核帮忙，而是不能绕过 CPU 规定的入口，直接取得特权。</text>
+
+  <!-- 用户态与禁止直接进入 -->
+  <g filter="url(#shadow)">
+    <rect x="48" y="152" width="1504" height="142" rx="20" fill="#ffffff" stroke="#60a5fa" stroke-width="3"/>
+    <rect x="48" y="152" width="290" height="142" rx="20" fill="#2563eb"/>
+  </g>
+  <text x="193" y="208" text-anchor="middle" class="head white" style="font-size:24px">用户态 / 受限模式</text>
+  <text x="193" y="242" text-anchor="middle" class="label white">普通应用在这里运行</text>
+  <text x="380" y="197" class="head">应用可以计算、读自己的内存、发出请求</text>
+  <text x="380" y="232" class="label">但不能自己把“模式位”改成内核态，也不能随意运行特权指令。</text>
+  <rect x="1018" y="181" width="470" height="76" rx="15" fill="#fff1f2" stroke="#ef4444" stroke-width="2"/>
+  <circle cx="1068" cy="207" r="14" fill="none" stroke="#dc2626" stroke-width="4"/>
+  <path d="M1058 217 L1078 197" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+  <text x="1095" y="215" class="head" style="fill:#b91c1c">没有“直接跳进内核”的捷径</text>
+  <text x="1050" y="242" class="small">本章先把常见受控路径分成三类。</text>
+
+  <text x="800" y="340" text-anchor="middle" class="head" style="fill:#334155">触发事件：谁按下了“内核的门铃”？</text>
+
+  <!-- 三张卡片 -->
+  <g filter="url(#shadow)">
+    <rect x="80" y="374" width="405" height="205" rx="20" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+    <rect x="80" y="374" width="405" height="58" rx="20" fill="#2563eb"/>
+    <rect x="80" y="412" width="405" height="20" fill="#2563eb"/>
+  </g>
+  <text x="282" y="413" text-anchor="middle" class="head white">① 系统调用：主动请求</text>
+  <text x="111" y="468" class="label">程序主动说：“请内核帮我做事”</text>
+  <text x="111" y="503" class="small">例：打开文件、读键盘、发网络数据。</text>
+  <text x="111" y="536" class="tiny">它执行一条专门的系统调用指令；发生时机由程序走到这里决定。</text>
+  <text x="111" y="563" class="tiny" style="fill:#1d4ed8">关键词：主动、同步、请求服务</text>
+
+  <g filter="url(#shadow)">
+    <rect x="598" y="374" width="405" height="205" rx="20" fill="#ffffff" stroke="#ea580c" stroke-width="3"/>
+    <rect x="598" y="374" width="405" height="58" rx="20" fill="#ea580c"/>
+    <rect x="598" y="412" width="405" height="20" fill="#ea580c"/>
+  </g>
+  <text x="800" y="413" text-anchor="middle" class="head white">② 硬件中断：外部来信</text>
+  <text x="629" y="468" class="label">设备告诉 CPU：“我这边有新事件”</text>
+  <text x="629" y="503" class="small">例：按键、鼠标、磁盘完成、定时器到点。</text>
+  <text x="629" y="536" class="tiny">它来自程序外部；CPU 通常在合适的指令边界响应。</text>
+  <text x="629" y="563" class="tiny" style="fill:#c2410c">关键词：外部、异步、通知事件</text>
+
+  <g filter="url(#shadow)">
+    <rect x="1115" y="374" width="405" height="205" rx="20" fill="#ffffff" stroke="#7c3aed" stroke-width="3"/>
+    <rect x="1115" y="374" width="405" height="58" rx="20" fill="#7c3aed"/>
+    <rect x="1115" y="412" width="405" height="20" fill="#7c3aed"/>
+  </g>
+  <text x="1317" y="413" text-anchor="middle" class="head white" style="font-size:23px">③ 同步异常：当前指令出问题</text>
+  <text x="1146" y="468" class="label">CPU 执行这一条指令时发现不能照常继续</text>
+  <text x="1146" y="503" class="small">例：除以零、非法访问、执行非法指令。</text>
+  <text x="1146" y="536" class="tiny">它和“正在执行的这条指令”直接有关。</text>
+  <text x="1146" y="563" class="tiny" style="fill:#6d28d9">关键词：内部、同步、报告问题</text>
+
+  <!-- 汇聚线 -->
+  <path d="M282 579 V627 H565 V660" fill="none" stroke="#2563eb" stroke-width="6" marker-end="url(#arrowBlue)"/>
+  <path d="M800 579 V660" fill="none" stroke="#ea580c" stroke-width="6" marker-end="url(#arrowOrange)"/>
+  <path d="M1317 579 V627 H1035 V660" fill="none" stroke="#7c3aed" stroke-width="6" marker-end="url(#arrowPurple)"/>
+
+  <!-- 受控入口与内核态 -->
+  <g filter="url(#shadow)">
+    <rect x="470" y="660" width="660" height="147" rx="22" fill="#ecfdf5" stroke="#16a34a" stroke-width="4"/>
+  </g>
+  <text x="800" y="704" text-anchor="middle" class="head" style="fill:#166534">CPU 的受控入口 → 内核模式 / 特权模式</text>
+  <text x="800" y="740" text-anchor="middle" class="label">CPU 保存必要的现场、按预设入口开始执行内核处理程序。</text>
+  <text x="800" y="773" text-anchor="middle" class="small">这是硬件与内核配合的边界：CPU 负责安全切换，内核负责决定怎样处理。</text>
+
+  <path d="M800 807 V850" fill="none" stroke="#16a34a" stroke-width="6" marker-end="url(#arrowGreen)"/>
+  <rect x="348" y="850" width="904" height="46" rx="23" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+  <text x="800" y="881" text-anchor="middle" class="label" style="fill:#166534">若返回同一用户线程：受控返回继续执行；也可能返回错误、让线程等待，或调度其他线程。</text>
+</svg>

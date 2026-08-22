@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">IPC：隔离进程如何通过操作系统协作</title>
+  <desc id="desc">两个各自拥有独立地址空间的进程不能直接互相读写。操作系统提供两条常见 IPC 路径：共享内存由内核建立共同映射后让双方访问同一批物理页；消息传递由内核对象负责排队和转交。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f9fbff"/>
+      <stop offset="1" stop-color="#f4f1ff"/>
+    </linearGradient>
+    <linearGradient id="kernel" x1="0" x2="1">
+      <stop offset="0" stop-color="#322767"/>
+      <stop offset="1" stop-color="#4d3d8f"/>
+    </linearGradient>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2969d8"/>
+    </marker>
+    <marker id="arrowPink" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#c23e78"/>
+    </marker>
+    <marker id="arrowWhite" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ffffff"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#273060" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .ui { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .h1 { font-size: 34px; font-weight: 800; fill: #17233d; }
+      .h2 { font-size: 24px; font-weight: 800; fill: #17233d; }
+      .h3 { font-size: 20px; font-weight: 800; fill: #17233d; }
+      .body { font-size: 18px; fill: #37455f; }
+      .small { font-size: 16px; fill: #53627d; }
+      .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 16px; fill: #37455f; }
+      .white { fill: #ffffff; }
+      .whitebody { font-size: 18px; fill: #f5f3ff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <rect x="40" y="28" width="1520" height="86" rx="22" fill="#ffffff" filter="url(#shadow)"/>
+  <text x="78" y="76" class="ui h1">IPC：彼此隔离的进程，怎样安全地合作？</text>
+  <text x="78" y="102" class="ui body">IPC（进程间通信）不是把两块私有内存直接打通；它是操作系统提供的、受规则约束的数据交换或协作方式。</text>
+
+  <text x="70" y="156" class="ui h2">第一步：默认情况下，两个进程各管各的</text>
+  <text x="70" y="184" class="ui small">进程 A 和进程 B 的“地址 0x1000”只是各自的虚拟地址；它们不天然指向同一块内存。</text>
+
+  <g filter="url(#shadow)">
+    <rect x="82" y="215" width="560" height="255" rx="22" fill="#fff4f8" stroke="#ec8ab2" stroke-width="3"/>
+    <rect x="958" y="215" width="560" height="255" rx="22" fill="#f0f6ff" stroke="#82afea" stroke-width="3"/>
+  </g>
+  <rect x="110" y="244" width="182" height="40" rx="20" fill="#c23e78"/>
+  <text x="145" y="272" class="ui h3 white">进程 A</text>
+  <rect x="986" y="244" width="182" height="40" rx="20" fill="#2969d8"/>
+  <text x="1021" y="272" class="ui h3 white">进程 B</text>
+  <text x="112" y="320" class="ui h3">A 的私有虚拟地址空间</text>
+  <text x="988" y="320" class="ui h3">B 的私有虚拟地址空间</text>
+  <rect x="116" y="342" width="218" height="82" rx="12" fill="#ffffff" stroke="#efbfd3"/>
+  <text x="137" y="374" class="ui mono">0x1000 → A 的数据</text>
+  <text x="137" y="402" class="ui small">只允许 A 按权限访问</text>
+  <rect x="990" y="342" width="218" height="82" rx="12" fill="#ffffff" stroke="#bdd4f5"/>
+  <text x="1011" y="374" class="ui mono">0x1000 → B 的数据</text>
+  <text x="1011" y="402" class="ui small">只允许 B 按权限访问</text>
+  <text x="364" y="370" class="ui small">不同的页表、句柄、</text>
+  <text x="364" y="396" class="ui small">运行进度与权限</text>
+  <text x="1238" y="370" class="ui small">不同的页表、句柄、</text>
+  <text x="1238" y="396" class="ui small">运行进度与权限</text>
+
+  <line x1="650" y1="345" x2="948" y2="345" stroke="#db3b51" stroke-width="5" stroke-dasharray="12 10"/>
+  <line x1="760" y1="315" x2="840" y2="385" stroke="#db3b51" stroke-width="8"/>
+  <line x1="840" y1="315" x2="760" y2="385" stroke="#db3b51" stroke-width="8"/>
+  <rect x="665" y="405" width="270" height="45" rx="22" fill="#ffe8ea"/>
+  <text x="706" y="435" class="ui h3" fill="#a8273b">不能直接越界读写</text>
+
+  <rect x="48" y="505" width="1504" height="80" rx="22" fill="url(#kernel)" filter="url(#shadow)"/>
+  <text x="82" y="555" class="ui h2 white">操作系统内核：建立规则、检查权限、提供 IPC 对象</text>
+  <text x="1070" y="555" class="ui whitebody">进程不能自己绕过这道边界</text>
+
+  <text x="70" y="638" class="ui h2">两条常见的协作路线</text>
+
+  <!-- Shared memory route -->
+  <g filter="url(#shadow)">
+    <rect x="82" y="670" width="690" height="280" rx="22" fill="#ffffff" stroke="#9e8bea" stroke-width="3"/>
+  </g>
+  <rect x="112" y="697" width="190" height="40" rx="20" fill="#715dd1"/>
+  <text x="144" y="725" class="ui h3 white">路线一：共享内存</text>
+  <text x="112" y="770" class="ui body">内核先把同一批物理页映射进 A 和 B。</text>
+  <text x="112" y="798" class="ui body">映射建好后，数据读写可不经内核逐字转运。</text>
+  <rect x="132" y="824" width="170" height="62" rx="12" fill="#fff4f8" stroke="#ec8ab2" stroke-width="2"/>
+  <text x="164" y="862" class="ui h3">A 的映射</text>
+  <rect x="472" y="824" width="170" height="62" rx="12" fill="#f0f6ff" stroke="#82afea" stroke-width="2"/>
+  <text x="504" y="862" class="ui h3">B 的映射</text>
+  <rect x="326" y="810" width="122" height="92" rx="14" fill="#f5f1ff" stroke="#715dd1" stroke-width="3"/>
+  <text x="342" y="847" class="ui h3">同一批</text>
+  <text x="342" y="873" class="ui h3">物理页</text>
+  <line x1="302" y1="855" x2="320" y2="855" stroke="#715dd1" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <line x1="472" y1="855" x2="454" y2="855" stroke="#715dd1" stroke-width="4" marker-end="url(#arrowPink)"/>
+  <rect x="112" y="910" width="620" height="25" rx="12" fill="#fff2c9"/>
+  <text x="132" y="929" class="ui small">重点：共享数据不等于自动协作；仍要用锁、信号量等协调“谁先读写”。</text>
+
+  <!-- Message route -->
+  <g filter="url(#shadow)">
+    <rect x="828" y="670" width="690" height="280" rx="22" fill="#ffffff" stroke="#72b9b3" stroke-width="3"/>
+  </g>
+  <rect x="858" y="697" width="202" height="40" rx="20" fill="#238b84"/>
+  <text x="890" y="725" class="ui h3 white">路线二：消息传递</text>
+  <text x="858" y="770" class="ui body">A 把一条消息交给内核维护的管道、队列或套接字。</text>
+  <text x="858" y="798" class="ui body">内核对象负责保存、排队、转交；B 再按规则接收。</text>
+  <rect x="875" y="826" width="120" height="58" rx="12" fill="#fff4f8" stroke="#ec8ab2" stroke-width="2"/>
+  <text x="911" y="862" class="ui h3">进程 A</text>
+  <rect x="1110" y="812" width="150" height="86" rx="14" fill="#e4faf7" stroke="#238b84" stroke-width="3"/>
+  <text x="1140" y="848" class="ui h3">内核消息</text>
+  <text x="1153" y="874" class="ui h3">对象</text>
+  <rect x="1375" y="826" width="120" height="58" rx="12" fill="#f0f6ff" stroke="#82afea" stroke-width="2"/>
+  <text x="1411" y="862" class="ui h3">进程 B</text>
+  <line x1="995" y1="855" x2="1098" y2="855" stroke="#238b84" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <line x1="1260" y1="855" x2="1363" y2="855" stroke="#238b84" stroke-width="4" marker-end="url(#arrowPink)"/>
+  <text x="1018" y="838" class="ui small">发送</text>
+  <text x="1280" y="838" class="ui small">接收</text>
+  <rect x="858" y="910" width="620" height="25" rx="12" fill="#def5f2"/>
+  <text x="877" y="929" class="ui small">重点：通道有各自的缓冲/顺序语义；业务消息边界和格式由双方协议约定。</text>
+</svg>

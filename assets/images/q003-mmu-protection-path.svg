@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">MMU 如何翻译地址并检查访问权限</title>
+  <desc id="desc">用户程序给出虚拟地址。MMU 这个硬件单元先根据内核配置的页表翻译地址，再检查用户或内核以及读写执行权限。允许时访问物理内存；当前无法直接完成时，CPU 产生同步异常并交给内核判断是补页重试还是报告错误。</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2563eb"/></marker>
+    <marker id="arrowGreen" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#16a34a"/></marker>
+    <marker id="arrowRed" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#dc2626"/></marker>
+    <marker id="arrowSlate" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#475569"/></marker>
+    <style>
+      .font { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; fill: #172554; }
+      .title { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 39px; font-weight: 700; fill: #0f172a; }
+      .subtitle { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 21px; fill: #475569; }
+      .head { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 27px; font-weight: 700; fill: #172554; }
+      .label { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 21px; fill: #1e293b; }
+      .small { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 18px; fill: #334155; }
+      .tiny { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; font-size: 16px; fill: #475569; }
+      .white { fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f8fafc"/>
+  <rect x="24" y="20" width="1552" height="100" rx="22" fill="#e0f2fe"/>
+  <text x="65" y="66" class="title">一次内存访问：MMU 翻译地址，也替操作系统守住边界</text>
+  <text x="65" y="100" class="subtitle">关键分工：内核软件先写好规则；MMU 是硬件，每次访问时照规则检查。</text>
+
+  <!-- 用户程序 -->
+  <g filter="url(#shadow)">
+    <rect x="58" y="186" width="332" height="288" rx="20" fill="#ffffff" stroke="#60a5fa" stroke-width="3"/>
+    <rect x="58" y="186" width="332" height="64" rx="20" fill="#2563eb"/>
+    <rect x="58" y="229" width="332" height="21" fill="#2563eb"/>
+  </g>
+  <text x="224" y="228" text-anchor="middle" class="head white">用户程序（用户态）</text>
+  <text x="88" y="291" class="label">例如：读取变量 <tspan font-family="Consolas, monospace" fill="#1d4ed8">x</tspan></text>
+  <rect x="87" y="319" width="274" height="72" rx="12" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="224" y="350" text-anchor="middle" class="label">它给出的是</text>
+  <text x="224" y="378" text-anchor="middle" class="label" style="fill:#1d4ed8">虚拟页 4，偏移 0x40</text>
+  <text x="88" y="434" class="tiny">这不是 RAM 上的直接门牌号。</text>
+
+  <path d="M390 330 H520" fill="none" stroke="#2563eb" stroke-width="6" marker-end="url(#arrowBlue)"/>
+  <text x="455" y="305" text-anchor="middle" class="small" style="fill:#1d4ed8">交给硬件</text>
+
+  <!-- MMU -->
+  <g filter="url(#shadow)">
+    <rect x="540" y="154" width="493" height="458" rx="24" fill="#ffffff" stroke="#7c3aed" stroke-width="4"/>
+    <rect x="540" y="154" width="493" height="76" rx="22" fill="#7c3aed"/>
+    <rect x="540" y="207" width="493" height="23" fill="#7c3aed"/>
+  </g>
+  <text x="786" y="201" text-anchor="middle" class="head white">MMU：内存管理单元（硬件）</text>
+  <text x="786" y="260" text-anchor="middle" class="small">每次程序要读、写或取一条指令时，它都会参与。</text>
+
+  <rect x="575" y="291" width="423" height="113" rx="16" fill="#f5f3ff" stroke="#a78bfa" stroke-width="2"/>
+  <circle cx="612" cy="336" r="19" fill="#7c3aed"/>
+  <text x="612" y="343" text-anchor="middle" class="label white">1</text>
+  <text x="649" y="329" class="head">查页表：翻译地址</text>
+  <text x="649" y="362" class="small">虚拟页 4 → 物理页 31；页内偏移不变</text>
+  <text x="649" y="389" class="tiny">页表是内核预先建立的映射规则。</text>
+
+  <rect x="575" y="428" width="423" height="144" rx="16" fill="#fff7ed" stroke="#fb923c" stroke-width="2"/>
+  <circle cx="612" cy="472" r="19" fill="#ea580c"/>
+  <text x="612" y="479" text-anchor="middle" class="label white">2</text>
+  <text x="649" y="466" class="head">检查权限：能不能这样访问？</text>
+  <text x="649" y="500" class="small">目标页是用户页，还是内核页？</text>
+  <text x="649" y="528" class="small">本次操作可读 / 写 / 执行吗？</text>
+  <text x="649" y="556" class="tiny">例如：用户程序不能读写“仅内核可用”的内存页。</text>
+
+  <!-- 允许通路 -->
+  <path d="M1033 376 H1215 V342 H1235" fill="none" stroke="#16a34a" stroke-width="6" marker-end="url(#arrowGreen)"/>
+  <rect x="1070" y="314" width="102" height="38" rx="19" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+  <text x="1121" y="340" text-anchor="middle" class="label" style="fill:#166534">允许</text>
+
+  <g filter="url(#shadow)">
+    <rect x="1240" y="232" width="290" height="226" rx="20" fill="#ffffff" stroke="#16a34a" stroke-width="3"/>
+    <rect x="1240" y="232" width="290" height="63" rx="20" fill="#16a34a"/>
+    <rect x="1240" y="274" width="290" height="21" fill="#16a34a"/>
+  </g>
+  <text x="1385" y="273" text-anchor="middle" class="head white">物理内存（RAM）</text>
+  <rect x="1270" y="320" width="230" height="92" rx="12" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+  <text x="1385" y="353" text-anchor="middle" class="label">实际访问：</text>
+  <text x="1385" y="385" text-anchor="middle" class="label" style="fill:#15803d;font-size:19px">物理页 31 + 相同偏移</text>
+  <text x="1385" y="438" text-anchor="middle" class="tiny">MMU 把正确的地址送到内存。</text>
+
+  <!-- 拒绝通路 -->
+  <path d="M785 612 V688 H684 V718" fill="none" stroke="#dc2626" stroke-width="6" marker-end="url(#arrowRed)"/>
+  <rect x="805" y="640" width="102" height="38" rx="19" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+  <text x="856" y="666" text-anchor="middle" class="small" style="fill:#b91c1c">需内核处理</text>
+
+  <g filter="url(#shadow)">
+    <rect x="500" y="718" width="368" height="172" rx="20" fill="#fff1f2" stroke="#dc2626" stroke-width="3"/>
+  </g>
+  <text x="684" y="762" text-anchor="middle" class="head" style="fill:#b91c1c">CPU 产生同步异常</text>
+  <text x="684" y="797" text-anchor="middle" class="label">暂停这一次访问，交给内核</text>
+  <text x="684" y="828" text-anchor="middle" class="small">控制权转交给内核，而不是继续乱读写。</text>
+  <text x="684" y="860" text-anchor="middle" class="tiny">例：合法但未准备好的页，或访问无权限页。</text>
+  <path d="M868 804 H994" fill="none" stroke="#dc2626" stroke-width="6" marker-end="url(#arrowRed)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="1020" y="710" width="510" height="190" rx="20" fill="#fff7ed" stroke="#ea580c" stroke-width="3"/>
+  </g>
+  <text x="1055" y="755" class="head" style="fill:#9a3412">内核处理：决定接下来怎么办</text>
+  <text x="1055" y="793" class="small">合法缺页：准备页面后可重试。</text>
+  <text x="1055" y="821" class="small">权限违例：报告错误或结束程序。</text>
+  <text x="1055" y="852" class="small">具体结果由内核依据映射记录决定。</text>
+  <text x="1055" y="880" class="small">“异常”不一定等于整台电脑崩溃。</text>
+
+  <!-- 内核配置规则 -->
+  <g filter="url(#shadow)">
+    <rect x="58" y="689" width="355" height="220" rx="20" fill="#eef2ff" stroke="#4f46e5" stroke-width="3"/>
+  </g>
+  <text x="88" y="734" class="head" style="fill:#3730a3">内核（软件）先配置规则</text>
+  <text x="88" y="770" class="label">创建进程或分配内存时，内核设置：</text>
+  <text x="88" y="805" class="small">• 页表：虚拟页对应哪一物理页</text>
+  <text x="88" y="836" class="small">• 权限：用户 / 内核，读 / 写 / 执行</text>
+  <text x="88" y="872" class="tiny">之后 MMU 在硬件里执行这些规则。</text>
+  <path d="M413 787 C475 787, 468 583, 540 558" fill="none" stroke="#4f46e5" stroke-width="4" stroke-dasharray="10 10" marker-end="url(#arrowSlate)"/>
+  <text x="425" y="659" class="tiny" style="fill:#4338ca">设置 / 更新页表与权限</text>
+
+  <rect x="940" y="934" width="590" height="40" rx="20" fill="#e2e8f0"/>
+  <text x="1235" y="961" text-anchor="middle" class="small">现在只要记住：内核定规则，MMU 每次内存访问都执行检查。</text>
+</svg>
