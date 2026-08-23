@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1160" viewBox="0 0 1600 1160" role="img" aria-labelledby="title desc">
+  <title id="title">多核、逻辑 CPU、轮转调度与并发并行</title>
+  <desc id="desc">教学示意图。上方说明两个物理 CPU 核各是独立执行指令的硬件部件，操作系统通常把可调度的硬件执行位置称为逻辑 CPU。中间用两个核和就绪队列演示轮转调度、时间片结束与 I/O 阻塞。下方对比单个逻辑 CPU 的并发和两个逻辑 CPU 的并行。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f9fbff"/>
+      <stop offset="1" stop-color="#f5f2ff"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" x2="1">
+      <stop offset="0" stop-color="#312769"/>
+      <stop offset="1" stop-color="#5943a0"/>
+    </linearGradient>
+    <linearGradient id="dispatch" x1="0" x2="1">
+      <stop offset="0" stop-color="#316fc9"/>
+      <stop offset="1" stop-color="#28a187"/>
+    </linearGradient>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2d72d2"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#735bd6"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#d47c2d"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#273060" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .ui { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .h1 { font-size: 34px; font-weight: 800; fill: #17233d; }
+      .h2 { font-size: 24px; font-weight: 800; fill: #17233d; }
+      .h3 { font-size: 20px; font-weight: 800; fill: #17233d; }
+      .body { font-size: 18px; fill: #37455f; }
+      .small { font-size: 16px; fill: #53627d; }
+      .tiny { font-size: 14px; fill: #53627d; }
+      .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 16px; fill: #253651; }
+      .white { fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1160" fill="url(#bg)"/>
+  <rect x="40" y="28" width="1520" height="88" rx="22" fill="#ffffff" filter="url(#shadow)"/>
+  <text x="78" y="77" class="ui h1">多核、轮转调度、并发与并行：谁在同一时刻真正执行？</text>
+  <text x="78" y="103" class="ui body">先抓住主线：线程是软件里的待执行工作；内核调度器把“就绪”的线程安排到可用的逻辑 CPU 上。</text>
+
+  <!-- What is a core -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="148" width="1500" height="278" rx="24" fill="#ffffff" stroke="#c5b7f3" stroke-width="3"/>
+  </g>
+  <text x="82" y="191" class="ui h2">1. 多核里的“核”是一个能独立执行指令的硬件执行部件</text>
+  <text x="82" y="219" class="ui small">它不是软件线程，也不是一个进程。一个物理 CPU 封装里可以放多个这样的核。</text>
+
+  <rect x="84" y="244" width="804" height="144" rx="20" fill="#f3efff" stroke="#8066d9" stroke-width="3"/>
+  <rect x="109" y="257" width="205" height="30" rx="15" fill="url(#chip)"/>
+  <text x="137" y="279" class="ui tiny white">一个 CPU 封装（教学图）</text>
+
+  <g filter="url(#shadow)">
+    <rect x="115" y="304" width="330" height="64" rx="14" fill="#ffffff" stroke="#a997ea" stroke-width="2"/>
+    <rect x="504" y="304" width="330" height="64" rx="14" fill="#ffffff" stroke="#a997ea" stroke-width="2"/>
+  </g>
+  <rect x="131" y="318" width="68" height="36" rx="10" fill="#715dd1"/>
+  <text x="143" y="343" class="ui h3 white">核 0</text>
+  <rect x="520" y="318" width="68" height="36" rx="10" fill="#715dd1"/>
+  <text x="532" y="343" class="ui h3 white">核 1</text>
+  <rect x="216" y="319" width="56" height="34" rx="8" fill="#e8e3ff"/>
+  <rect x="281" y="319" width="56" height="34" rx="8" fill="#e8e3ff"/>
+  <rect x="346" y="319" width="72" height="34" rx="8" fill="#e8e3ff"/>
+  <text x="220" y="342" class="ui tiny">取指</text>
+  <text x="285" y="342" class="ui tiny">执行</text>
+  <text x="351" y="342" class="ui tiny">寄存器</text>
+  <rect x="605" y="319" width="56" height="34" rx="8" fill="#e8e3ff"/>
+  <rect x="670" y="319" width="56" height="34" rx="8" fill="#e8e3ff"/>
+  <rect x="735" y="319" width="72" height="34" rx="8" fill="#e8e3ff"/>
+  <text x="609" y="342" class="ui tiny">取指</text>
+  <text x="674" y="342" class="ui tiny">执行</text>
+  <text x="740" y="342" class="ui tiny">寄存器</text>
+
+  <rect x="935" y="244" width="579" height="144" rx="20" fill="#fffdf4" stroke="#e7bd55" stroke-width="3"/>
+  <text x="965" y="280" class="ui h3">操作系统看到的是“逻辑 CPU”</text>
+  <text x="965" y="312" class="ui body">没有 SMT 时：2 个物理核通常显示为 2 个逻辑 CPU。</text>
+  <text x="965" y="341" class="ui body">有 SMT 时：一个物理核可暴露多个硬件执行位置。</text>
+  <rect x="965" y="354" width="520" height="24" rx="12" fill="#fff2c9"/>
+  <text x="980" y="372" class="ui tiny">例如“2 核 × 每核 2 个硬件线程”常显示为 4 个逻辑 CPU；它们不等于 4 个完整物理核。</text>
+
+  <!-- Scheduler and round robin -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="462" width="1500" height="382" rx="24" fill="#ffffff" stroke="#94c8e8" stroke-width="3"/>
+  </g>
+  <text x="82" y="505" class="ui h2">2. 轮转调度：给每个“就绪线程”一小段 CPU 时间，再轮到队尾</text>
+  <text x="82" y="533" class="ui small">下面是刻意简化的两逻辑 CPU 场景。现实内核可能有每核队列、优先级和负载均衡，但基本动作类似。</text>
+
+  <rect x="84" y="568" width="300" height="224" rx="18" fill="#f2f8ff" stroke="#82afea" stroke-width="2"/>
+  <text x="109" y="604" class="ui h3">就绪队列</text>
+  <text x="109" y="631" class="ui small">能立即运行，正在等 CPU 的线程</text>
+  <rect x="109" y="654" width="64" height="42" rx="12" fill="#735bd6"/>
+  <rect x="183" y="654" width="64" height="42" rx="12" fill="#e08a3e"/>
+  <rect x="257" y="654" width="64" height="42" rx="12" fill="#328bbf"/>
+  <text x="126" y="682" class="ui h3 white">T1</text>
+  <text x="200" y="682" class="ui h3 white">T2</text>
+  <text x="274" y="682" class="ui h3 white">T3</text>
+  <text x="110" y="731" class="ui body">T1、T2 先被取走运行。</text>
+  <text x="110" y="759" class="ui small">时间片结束、仍可运行 → 回队尾</text>
+
+  <rect x="456" y="611" width="220" height="120" rx="20" fill="url(#dispatch)" filter="url(#shadow)"/>
+  <text x="500" y="657" class="ui h2 white">调度器</text>
+  <text x="483" y="687" class="ui small white">选择下一个就绪线程</text>
+  <text x="483" y="712" class="ui small white">并把它放上逻辑 CPU</text>
+  <path d="M385 677 C410 677, 425 671, 446 671" fill="none" stroke="#2d72d2" stroke-width="5" marker-end="url(#arrowBlue)"/>
+
+  <rect x="750" y="568" width="764" height="224" rx="18" fill="#fbfaff" stroke="#b7a8ed" stroke-width="2"/>
+  <text x="777" y="604" class="ui h3">两个逻辑 CPU 的一个小片段</text>
+  <text x="777" y="631" class="ui small">横向是时间。不同颜色代表不同线程；同一竖线右边的两行可以同时执行。</text>
+  <text x="777" y="674" class="ui mono">逻辑 CPU 0</text>
+  <rect x="931" y="647" width="165" height="44" rx="10" fill="#735bd6"/>
+  <rect x="1104" y="647" width="165" height="44" rx="10" fill="#328bbf"/>
+  <rect x="1277" y="647" width="165" height="44" rx="10" fill="#e08a3e"/>
+  <text x="993" y="676" class="ui h3 white">T1</text>
+  <text x="1166" y="676" class="ui h3 white">T3</text>
+  <text x="1339" y="676" class="ui h3 white">T2</text>
+  <text x="777" y="741" class="ui mono">逻辑 CPU 1</text>
+  <rect x="931" y="714" width="165" height="44" rx="10" fill="#e08a3e"/>
+  <rect x="1104" y="714" width="165" height="44" rx="10" fill="#715dd1"/>
+  <rect x="1277" y="714" width="165" height="44" rx="10" fill="#e8edf5" stroke="#aebbd0" stroke-width="2"/>
+  <text x="993" y="743" class="ui h3 white">T2</text>
+  <text x="1166" y="743" class="ui h3 white">T1</text>
+  <text x="1323" y="742" class="ui tiny">可运行线程不足</text>
+  <line x1="1100" y1="637" x2="1100" y2="765" stroke="#7d8aa0" stroke-width="2" stroke-dasharray="6 6"/>
+  <line x1="1273" y1="637" x2="1273" y2="765" stroke="#7d8aa0" stroke-width="2" stroke-dasharray="6 6"/>
+  <text x="934" y="786" class="ui tiny">t0：T1、T2 开始</text>
+  <text x="1106" y="786" class="ui tiny">一个时间片后：T1 轮转，T2 因 I/O 阻塞</text>
+  <path d="M1034 758 C1034 783, 1010 801, 977 808" fill="none" stroke="#d47c2d" stroke-width="3" marker-end="url(#arrowOrange)"/>
+  <rect x="803" y="802" width="270" height="28" rx="14" fill="#fff0df"/>
+  <text x="822" y="822" class="ui tiny">T2 等磁盘/网络：暂时不占 CPU</text>
+
+  <!-- concurrent vs parallel -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="880" width="728" height="220" rx="24" fill="#ffffff" stroke="#a8d8cd" stroke-width="3"/>
+    <rect x="822" y="880" width="728" height="220" rx="24" fill="#ffffff" stroke="#c5b7f3" stroke-width="3"/>
+  </g>
+  <text x="82" y="922" class="ui h2">并发：交替推进，看起来一起做</text>
+  <text x="82" y="951" class="ui small">只有一个逻辑 CPU 时，T1 与 T2 轮流占用它；同一瞬间通常只运行一个。</text>
+  <text x="100" y="990" class="ui mono">一个逻辑 CPU</text>
+  <rect x="264" y="965" width="145" height="44" rx="10" fill="#735bd6"/>
+  <rect x="417" y="965" width="145" height="44" rx="10" fill="#e08a3e"/>
+  <rect x="570" y="965" width="145" height="44" rx="10" fill="#735bd6"/>
+  <text x="323" y="994" class="ui h3 white">T1</text>
+  <text x="476" y="994" class="ui h3 white">T2</text>
+  <text x="629" y="994" class="ui h3 white">T1</text>
+  <text x="100" y="1050" class="ui body">关键是“交错”，不是两条指令在同一时刻执行。</text>
+
+  <text x="854" y="922" class="ui h2">并行：不同逻辑 CPU 同时执行</text>
+  <text x="854" y="951" class="ui small">有两个可用逻辑 CPU 时，T1 和 T2 可以在同一时间段实际运行。</text>
+  <text x="872" y="988" class="ui mono">逻辑 CPU 0</text>
+  <rect x="1045" y="963" width="350" height="38" rx="10" fill="#735bd6"/>
+  <text x="1204" y="989" class="ui h3 white">T1</text>
+  <text x="872" y="1042" class="ui mono">逻辑 CPU 1</text>
+  <rect x="1045" y="1017" width="350" height="38" rx="10" fill="#e08a3e"/>
+  <text x="1204" y="1043" class="ui h3 white">T2</text>
+  <text x="1415" y="1000" class="ui tiny">同一时间段</text>
+  <text x="854" y="1082" class="ui body">现在只要记住：能并行的上限更接近“可用逻辑 CPU 数”，不是进程或线程总数。</text>
+
+  <rect x="50" y="1120" width="1500" height="25" rx="12" fill="#fff2c9"/>
+  <text x="74" y="1139" class="ui tiny">教学简化：核心、SMT、时间片长度、优先级和每核队列都依 CPU 与操作系统而不同；“等待 I/O 时让别的线程运行”是提高利用率的常见原因之一。</text>
+</svg>

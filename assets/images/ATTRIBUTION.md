@@ -94,3 +94,23 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
+
+## `q005-multicore-scheduling.svg`
+
+- 标题：多核、逻辑 CPU、轮转调度与并发并行
+- 作者：本仓库为 Q005 绘制的原创 SVG
+- 来源：无外部素材、无外部图片副本
+- 许可：未单独声明许可；不得据此推定可独立转载、修改或再授权。
+- 本仓库处理：原创文件，未使用第三方图像。
+
+该图把两个物理 CPU 核、逻辑 CPU、就绪队列、轮转时间片和 I/O 阻塞放在一个连续场景中，并在下方对比并发和并行。它是教学简化图：没有表达真实内核的优先级、每核运行队列、迁移、缓存、NUMA 或所有 SMT 实现；一个逻辑 CPU 也不应被误解成一个完整物理核。
+
+## `q005-stack-heap-pointer.svg`
+
+- 标题：调用栈、堆与栈指针
+- 作者：本仓库为 Q005 绘制的原创 SVG
+- 来源：无外部素材、无外部图片副本
+- 许可：未单独声明许可；不得据此推定可独立转载、修改或再授权。
+- 本仓库处理：原创文件，未使用第三方图像。
+
+该图用一个进程的两个线程说明“每线程一份调用栈、同进程线程通常共享堆”，并追踪函数调用、返回、动态分配和上下文切换时的 SP。它不是固定的真实地址布局：栈增长方向、栈帧内容、局部变量的位置和堆的释放时机都会随 CPU、ABI、编译器优化、语言与运行时而变。

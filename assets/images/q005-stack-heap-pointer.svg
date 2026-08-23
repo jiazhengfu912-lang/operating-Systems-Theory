@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1130" viewBox="0 0 1600 1130" role="img" aria-labelledby="title desc">
+  <title id="title">调用栈、堆与栈指针</title>
+  <desc id="desc">教学示意图。一个进程有自己的虚拟地址空间和通常由其中线程共享的堆。每个线程拥有独立调用栈。函数调用时在当前线程的栈上增加一个栈帧，返回时移除它。栈指针 SP 是当前执行线程的处理器寄存器，指向该线程当前栈顶附近的位置；上下文切换时系统会保存和恢复不同线程的 SP。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#fbfcff"/>
+      <stop offset="1" stop-color="#f9f3ff"/>
+    </linearGradient>
+    <linearGradient id="stack" x1="0" x2="1">
+      <stop offset="0" stop-color="#365fbc"/>
+      <stop offset="1" stop-color="#4f83dc"/>
+    </linearGradient>
+    <linearGradient id="heap" x1="0" x2="1">
+      <stop offset="0" stop-color="#d8882f"/>
+      <stop offset="1" stop-color="#e8a842"/>
+    </linearGradient>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2d72d2"/>
+    </marker>
+    <marker id="arrowGold" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#d88626"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#7058ce"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#273060" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .ui { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .h1 { font-size: 34px; font-weight: 800; fill: #17233d; }
+      .h2 { font-size: 24px; font-weight: 800; fill: #17233d; }
+      .h3 { font-size: 20px; font-weight: 800; fill: #17233d; }
+      .body { font-size: 18px; fill: #37455f; }
+      .small { font-size: 16px; fill: #53627d; }
+      .tiny { font-size: 14px; fill: #53627d; }
+      .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 16px; fill: #253651; }
+      .white { fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1130" fill="url(#bg)"/>
+  <rect x="40" y="28" width="1520" height="88" rx="22" fill="#ffffff" filter="url(#shadow)"/>
+  <text x="78" y="77" class="ui h1">栈、堆与栈指针：函数调用时，电脑把“现场”放在哪里？</text>
+  <text x="78" y="103" class="ui body">这里说的是正在运行的一个进程。它的线程各有调用栈；它们通常共享同一份进程堆。</text>
+
+  <!-- Virtual address space -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="150" width="930" height="630" rx="24" fill="#ffffff" stroke="#9aaee0" stroke-width="3"/>
+  </g>
+  <rect x="78" y="176" width="286" height="38" rx="19" fill="#384f8d"/>
+  <text x="104" y="203" class="ui h3 white">进程 P 的虚拟地址空间</text>
+  <text x="78" y="244" class="ui small">这不是一张“物理 RAM 地图”。它是当前进程可见、可用的地址范围的教学简化图。</text>
+
+  <!-- Non-expanded regions -->
+  <rect x="86" y="278" width="400" height="62" rx="14" fill="#eef1f7" stroke="#b3bece" stroke-width="2"/>
+  <text x="111" y="314" class="ui h3">代码、只读数据、全局数据等</text>
+  <text x="111" y="332" class="ui tiny">本图不展开：重点看堆和两个线程的栈</text>
+
+  <!-- Heap -->
+  <rect x="86" y="368" width="400" height="346" rx="18" fill="#fff7e8" stroke="#e2aa4a" stroke-width="3"/>
+  <rect x="110" y="392" width="135" height="34" rx="17" fill="url(#heap)"/>
+  <text x="141" y="416" class="ui h3 white">进程堆</text>
+  <text x="110" y="456" class="ui body">运行中按需申请的对象/内存区域</text>
+  <text x="110" y="484" class="ui small">例如 C 的 malloc，或运行时替对象准备空间</text>
+  <rect x="126" y="522" width="132" height="82" rx="12" fill="#ffffff" stroke="#e2aa4a" stroke-width="2"/>
+  <text x="158" y="553" class="ui h3">对象 O</text>
+  <text x="145" y="581" class="ui mono">count = 3</text>
+  <rect x="278" y="522" width="170" height="82" rx="12" fill="#ffffff" stroke="#e2aa4a" stroke-width="2"/>
+  <text x="305" y="553" class="ui h3">缓冲区 B</text>
+  <text x="302" y="581" class="ui mono">byte[1024]</text>
+  <rect x="110" y="637" width="350" height="52" rx="14" fill="#fff0d6"/>
+  <text x="128" y="661" class="ui small">同一进程的多个线程通常都能看到它。</text>
+  <text x="128" y="681" class="ui tiny">所以“共享”不等于“不会抢着改”：仍要协调读写。</text>
+
+  <!-- Thread A Stack -->
+  <rect x="532" y="278" width="402" height="436" rx="18" fill="#eef5ff" stroke="#4f83dc" stroke-width="3"/>
+  <rect x="557" y="301" width="194" height="34" rx="17" fill="url(#stack)"/>
+  <text x="588" y="325" class="ui h3 white">线程 A 的调用栈</text>
+  <text x="557" y="360" class="ui small">后调用的函数先返回：后进先出（LIFO）</text>
+
+  <rect x="574" y="395" width="245" height="80" rx="12" fill="#ffffff" stroke="#80a9ea" stroke-width="2"/>
+  <text x="600" y="425" class="ui h3">较早的 main 栈帧</text>
+  <text x="600" y="452" class="ui mono">局部变量 x = 4</text>
+  <rect x="574" y="486" width="245" height="126" rx="12" fill="#dbeaff" stroke="#3978d0" stroke-width="3"/>
+  <text x="600" y="518" class="ui h3">当前的 sum 栈帧</text>
+  <text x="600" y="546" class="ui mono">参数 a = 4</text>
+  <text x="600" y="572" class="ui mono">局部变量 temp = 5</text>
+  <text x="600" y="598" class="ui tiny">还会有返回地址等调用信息</text>
+  <path d="M851 548 C883 548, 885 548, 910 548" fill="none" stroke="#2d72d2" stroke-width="5" marker-end="url(#arrowBlue)"/>
+  <rect x="824" y="506" width="84" height="84" rx="14" fill="#eaf4ff" stroke="#2d72d2" stroke-width="2"/>
+  <text x="844" y="538" class="ui h3">SP</text>
+  <text x="834" y="563" class="ui tiny">栈指针</text>
+  <text x="834" y="581" class="ui tiny">寄存器</text>
+  <text x="557" y="651" class="ui body">SP 记录当前线程栈顶附近的位置。</text>
+  <text x="557" y="679" class="ui small">函数调用时调整它，函数返回时再恢复。</text>
+
+  <!-- Thread B -->
+  <g filter="url(#shadow)">
+    <rect x="1035" y="150" width="515" height="630" rx="24" fill="#ffffff" stroke="#bdaeea" stroke-width="3"/>
+  </g>
+  <text x="1068" y="194" class="ui h2">同一进程的线程 B</text>
+  <text x="1068" y="222" class="ui small">它不是“继续使用 A 的调用栈”。它有自己的栈和自己的 SP。</text>
+  <rect x="1080" y="270" width="406" height="270" rx="18" fill="#f7f2ff" stroke="#9e86df" stroke-width="3"/>
+  <rect x="1105" y="293" width="180" height="34" rx="17" fill="#7058ce"/>
+  <text x="1138" y="317" class="ui h3 white">线程 B 的调用栈</text>
+  <rect x="1115" y="354" width="260" height="76" rx="12" fill="#ffffff" stroke="#b8a8e9" stroke-width="2"/>
+  <text x="1140" y="386" class="ui h3">worker 栈帧</text>
+  <text x="1140" y="412" class="ui mono">局部变量 i = 9</text>
+  <rect x="1400" y="357" width="58" height="70" rx="12" fill="#eee8ff" stroke="#7058ce" stroke-width="2"/>
+  <text x="1413" y="387" class="ui h3">SP_B</text>
+  <text x="1412" y="409" class="ui tiny">另一份</text>
+  <text x="1115" y="477" class="ui small">A 暂停、B 开始运行时，系统会保存 A 的寄存器，</text>
+  <text x="1115" y="505" class="ui small">再恢复 B 的寄存器；SP 也是其中一个重要值。</text>
+
+  <rect x="1080" y="583" width="406" height="137" rx="18" fill="#fff7e8" stroke="#e2aa4a" stroke-width="3"/>
+  <text x="1110" y="621" class="ui h3">A 与 B 怎样都能访问对象 O？</text>
+  <text x="1110" y="652" class="ui body">因为它属于进程堆，不属于某一个线程的栈。</text>
+  <text x="1110" y="682" class="ui small">但程序必须自己保证读写次序不会冲突。</text>
+  <path d="M1080 706 C947 748, 650 750, 492 704" fill="none" stroke="#d88626" stroke-width="5" marker-end="url(#arrowGold)"/>
+
+  <!-- Dynamic actions -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="822" width="1500" height="244" rx="24" fill="#ffffff" stroke="#9daed6" stroke-width="3"/>
+  </g>
+  <text x="82" y="864" class="ui h2">函数调用和动态分配，发生的是两种不同的“增加/释放”动作</text>
+
+  <rect x="86" y="895" width="680" height="132" rx="18" fill="#eef5ff" stroke="#80a9ea" stroke-width="2"/>
+  <text x="112" y="928" class="ui h3">调用栈：跟着函数调用和返回走</text>
+  <rect x="112" y="950" width="150" height="48" rx="12" fill="#ffffff" stroke="#80a9ea" stroke-width="2"/>
+  <text x="144" y="980" class="ui h3">调用 sum()</text>
+  <path d="M268 974 L338 974" stroke="#2d72d2" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <rect x="350" y="950" width="142" height="48" rx="12" fill="#dbeaff" stroke="#3978d0" stroke-width="2"/>
+  <text x="381" y="980" class="ui h3">新增栈帧</text>
+  <path d="M499 974 L569 974" stroke="#2d72d2" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <rect x="580" y="950" width="154" height="48" rx="12" fill="#ffffff" stroke="#80a9ea" stroke-width="2"/>
+  <text x="612" y="980" class="ui h3">return 后移除</text>
+  <text x="112" y="1019" class="ui tiny">它最擅长保存“这一层函数调用”的局部现场；不是所有局部变量都必定真的放在这里。</text>
+
+  <rect x="816" y="895" width="698" height="132" rx="18" fill="#fff7e8" stroke="#e2aa4a" stroke-width="2"/>
+  <text x="842" y="928" class="ui h3">进程堆：按程序需要申请，寿命不必等于一个函数调用</text>
+  <rect x="842" y="950" width="150" height="48" rx="12" fill="#ffffff" stroke="#e2aa4a" stroke-width="2"/>
+  <text x="870" y="980" class="ui h3">malloc / new</text>
+  <path d="M998 974 L1068 974" stroke="#d88626" stroke-width="4" marker-end="url(#arrowGold)"/>
+  <rect x="1080" y="950" width="135" height="48" rx="12" fill="#ffedca" stroke="#e2aa4a" stroke-width="2"/>
+  <text x="1114" y="980" class="ui h3">堆对象</text>
+  <path d="M1221 974 L1291 974" stroke="#d88626" stroke-width="4" marker-end="url(#arrowGold)"/>
+  <rect x="1303" y="950" width="181" height="48" rx="12" fill="#ffffff" stroke="#e2aa4a" stroke-width="2"/>
+  <text x="1328" y="980" class="ui h3">free / Drop / GC</text>
+  <text x="842" y="1019" class="ui tiny">释放时机由语言、运行时和程序写法决定；“堆对象一定活得更久”不是绝对规则。</text>
+
+  <rect x="50" y="1085" width="1500" height="25" rx="12" fill="#fff2c9"/>
+  <text x="74" y="1104" class="ui tiny">教学简化：不同 CPU 的 SP 精确定义、栈增长方向、栈帧布局和优化结果会不同。图中上下位置不表示固定地址方向；重点是“每线程一份调用栈、SP 随当前线程切换”。</text>
+</svg>

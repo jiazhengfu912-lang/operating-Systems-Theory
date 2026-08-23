@@ -15,8 +15,9 @@
 | [第 2 章：CPU、上下文与指令](docs/02-cpu-context-registers-and-instructions.md) | 理解寄存器、地址空间、PID、PCB、上下文切换、并发和代码执行路径 | 已整理，待复习 |
 | [第 3 章：MMU、特权模式、中断与系统调用](docs/03-mmu-privilege-modes-interrupts-and-apis.md) | 理解内存地址翻译、用户态与内核态、API、系统调用、异常和中断怎样连成一条安全边界 | 已整理，待复习 |
 | [第 4 章：进程协作、IPC、端口与客户端/服务器](docs/04-process-cooperation-ipc-ports-and-client-server.md) | 理解隔离进程怎样通过共享内存、消息和套接字协作，并分清端口与客户端/服务器 | 已整理，待复习 |
-| [问题档案](questions/README.md) | 保存原始问题、待澄清连接、对应章节和复习状态 | Q001、Q002、Q003、Q004 已登记 |
-| [图片来源、版权与制作说明](assets/images/ATTRIBUTION.md) | 查看本地保存的外部教学图片和本仓库原创图的来源、许可与使用边界 | 已收录 6 张 |
+| [第 5 章：多核 CPU、轮转调度、并发与线程](docs/05-multicore-scheduling-and-threads.md) | 理解物理核心、逻辑 CPU、轮转调度、CPU 利用率、并发/并行和线程为何被调度 | 已整理，待复习 |
+| [问题档案](questions/README.md) | 保存原始问题、待澄清连接、对应章节和复习状态 | Q001 至 Q005 已登记 |
+| [图片来源、版权与制作说明](assets/images/ATTRIBUTION.md) | 查看本地保存的外部教学图片和本仓库原创图的来源、许可与使用边界 | 已收录 8 张 |
 | [用户提问原图档案](assets/questions/README.md) | 保留用户提问时附带的原图，并连接到对应解释 | Q002 已归档 |
 
 ## 当前学习主线
@@ -30,6 +31,7 @@ flowchart LR
     Q2["我的问题 Q002"] --> T
     Q3["我的问题 Q003"] --> MMU
     Q4["我的问题 Q004"] --> IPC
+    Q5["我的问题 Q005"] --> CORE
     T --> CPU["CPU 取指、译码、执行"]
     T --> CTX["线程上下文<br/>寄存器、栈、程序计数器"]
     CTX --> SWITCH["调度与上下文切换"]
@@ -60,21 +62,28 @@ flowchart LR
     PORT --> SERVER["服务器监听并处理"]
     CLIENT["客户端提出请求"] --> SOCKET
     RT["C / Rust / Python / JavaScript 运行方式"] --> PROC
+    CPU --> CORE["物理核心与逻辑 CPU"]
+    CORE --> SCHED5["调度器分配可运行线程"]
+    SCHED5 --> RR["轮转、时间片、阻塞与唤醒"]
+    T --> STACK5["每线程的栈与 SP"]
+    T --> PARA["并发与并行"]
+    SOURCE5["源代码"] --> PORTABLE["针对不同 CPU / OS 重新构建"]
+    PORTABLE --> PROC
 
     classDef question fill:#fff2cc,stroke:#c99a00,color:#222;
     classDef current fill:#d9ead3,stroke:#38761d,color:#222;
     classDef relation fill:#d9eaf7,stroke:#3d85c6,color:#222;
     classDef boundary fill:#fce5cd,stroke:#cc7a00,color:#222;
-    class Q,Q2,Q3,Q4 question;
-    class P,L,PROC,T,CPU,CTX,SWITCH,PCB,VM,KRULES,VADDR,MMU,MAP,MODE,API,DEVICE,REG,H,F,IPC,SHM,CHANNEL,SOCKET,PORT,CLIENT,SERVER,RT current;
+    class Q,Q2,Q3,Q4,Q5 question;
+    class P,L,PROC,T,CPU,CTX,SWITCH,PCB,VM,KRULES,VADDR,MMU,MAP,MODE,API,DEVICE,REG,H,F,IPC,SHM,CHANNEL,SOCKET,PORT,CLIENT,SERVER,RT,CORE,SCHED5,RR,STACK5,PARA,SOURCE5,PORTABLE current;
     class SYSCALL,FAULT,IRQ,ENTRY boundary;
 ```
 
-这张图表达的不是一堆孤立名词，而是四条已经连起来的因果链：程序保存在磁盘上，操作系统根据程序建立进程，线程在进程中执行；线程执行时依赖寄存器、地址空间和其他运行状态，调度器切换线程时保存并恢复这些状态；普通程序使用 API 请求服务，CPU 用模式位和 MMU 守住边界，系统调用、异常和设备中断再让内核从规定入口接手处理；彼此隔离的进程再通过受控映射或消息通道协作，网络场景下由套接字、协议、IP 和端口把请求送到服务器。不同编程语言最终也要落到这些操作系统机制上。
+这张图表达的不是一堆孤立名词，而是五条已经连起来的因果链：程序保存在磁盘上，操作系统根据程序建立进程，线程在进程中执行；线程执行时依赖寄存器、地址空间和其他运行状态，调度器切换线程时保存并恢复这些状态；普通程序使用 API 请求服务，CPU 用模式位和 MMU 守住边界，系统调用、异常和设备中断再让内核从规定入口接手处理；彼此隔离的进程再通过受控映射或消息通道协作，网络场景下由套接字、协议、IP 和端口把请求送到服务器；多核硬件向调度器提供多个逻辑 CPU，线程可通过时间片并发推进，也可在多个逻辑 CPU 上并行推进。不同编程语言最终也要落到这些操作系统机制上。
 
 ## 图文材料怎样使用
 
-Mermaid 适合画概念关系和时序，但不应成为唯一图形载体。对于内存布局、寄存器、硬件结构、真实界面或空间映射等问题，详细章节会优先补充许可明确的外部图片、动画、交互资源或本仓库原创图，并在图片旁解释“该看什么、它省略了什么”。第 1、2 章各有一张本地保存的开放许可 SVG；第 3 章有两张原创 SVG；第 4 章再用两张原创 SVG 把“隔离进程怎样协作”和“端口怎样把请求送到套接字”画成慢动作。全部来源、许可和制作边界记录在[图片来源、版权与制作说明](assets/images/ATTRIBUTION.md)。
+Mermaid 适合画概念关系和时序，但不应成为唯一图形载体。对于内存布局、寄存器、硬件结构、真实界面或空间映射等问题，详细章节会优先补充许可明确的外部图片、动画、交互资源或本仓库原创图，并在图片旁解释“该看什么、它省略了什么”。第 1、2 章各有一张本地保存的开放许可 SVG；第 3、4 章各有两张原创 SVG；第 5 章又用两张原创 SVG 把“物理核心/逻辑 CPU/时间片”和“栈、堆、SP、函数返回”画成慢动作。全部来源、许可和制作边界记录在[图片来源、版权与制作说明](assets/images/ATTRIBUTION.md)。
 
 ## 学习状态说明
 
@@ -102,7 +111,7 @@ flowchart TD
 
 ## 首版边界
 
-当前只详细展开了我已经提出的四组问题：
+当前只详细展开了我已经提出的五组问题：
 
 - 程序和进程分别是什么？
 - 程序怎样进入内存并开始执行？
@@ -119,5 +128,10 @@ flowchart TD
 - 独立进程与协作进程怎样从隔离变成合作？IPC 到底解决什么？
 - 共享内存和消息传递各自怎样工作？为什么同步和协议仍然不可少？
 - 端口、socket、IP、PID、客户端和服务器怎样区分并连接？
+- 多核中的物理核心、逻辑 CPU 与软件线程分别是什么？核心数怎样影响同时执行的线程数？
+- CPU 怎样通过时间片轮转调度？线程阻塞、唤醒和上下文切换怎样连接？
+- 怎样提高有效 CPU 利用率？为什么并发不等于并行、线程多不等于更快？
+- 栈、堆和栈指针怎样跟随一次函数调用变化？为什么现代操作系统通常调度线程而不是整个进程？
+- 监听进程在监听什么？程序的源代码可移植性和二进制兼容性又有什么区别？
 
-具体调度算法、线程同步原语、死锁、页面置换、文件系统内部结构、驱动实现、DMA/IOMMU、安全攻防、TCP 细节和虚拟化等主题目前仍只出现在总图中，不提前展开；第 4 章只建立了理解它们所需的进程隔离、IPC 两种思路、端口、套接字和客户端/服务器基础。
+优先级/实时/负载平衡等更完整的调度策略、线程同步原语、死锁、页面置换、文件系统内部结构、驱动实现、DMA/IOMMU、安全攻防、TCP 细节和虚拟化等主题目前仍只出现在总图中，不提前展开；第 5 章只建立了理解它们所需的物理核心、逻辑 CPU、轮转、阻塞、线程执行状态和并发/并行基础。
