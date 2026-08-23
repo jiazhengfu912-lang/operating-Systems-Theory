@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1160" viewBox="0 0 1600 1160" role="img" aria-labelledby="title desc">
+  <title id="title">同一份源代码如何在 Windows、Linux 与 macOS 上分别运行</title>
+  <desc id="desc">教学示意图。上方是一份可移植的源代码；中间分别展示为 Windows、Linux 与 macOS 选择目标、工具链、运行时、二进制文件格式与操作系统接口；下方展示 x86-64 或 ARM64 等 CPU 架构。它强调源代码可以经适配重新构建，而为一个系统和架构生成的二进制文件通常不能直接在另一个目标上运行。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7fbff"/>
+      <stop offset="1" stop-color="#f6f2ff"/>
+    </linearGradient>
+    <linearGradient id="source" x1="0" x2="1">
+      <stop offset="0" stop-color="#2b5fae"/>
+      <stop offset="1" stop-color="#5c48ad"/>
+    </linearGradient>
+    <linearGradient id="toolchain" x1="0" x2="1">
+      <stop offset="0" stop-color="#287ab8"/>
+      <stop offset="1" stop-color="#2ca489"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" x2="1">
+      <stop offset="0" stop-color="#292555"/>
+      <stop offset="1" stop-color="#57428f"/>
+    </linearGradient>
+    <marker id="blueArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3174c7"/>
+    </marker>
+    <marker id="purpleArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#765fd2"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#24335c" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .ui { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .h1 { font-size: 34px; font-weight: 800; fill: #17233d; }
+      .h2 { font-size: 24px; font-weight: 800; fill: #17233d; }
+      .h3 { font-size: 20px; font-weight: 800; fill: #17233d; }
+      .body { font-size: 18px; fill: #37455f; }
+      .small { font-size: 16px; fill: #53627d; }
+      .tiny { font-size: 14px; fill: #53627d; }
+      .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 16px; fill: #263653; }
+      .white { fill: #fff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1160" fill="url(#bg)"/>
+  <rect x="40" y="28" width="1520" height="90" rx="22" fill="#fff" filter="url(#shadow)"/>
+  <text x="78" y="77" class="ui h1">同一份软件，为什么要为不同系统和 CPU 准备不同的“成品”？</text>
+  <text x="78" y="104" class="ui body">最短答案：源代码是“做法”；二进制成品必须同时对上操作系统的约定和 CPU 能执行的指令。</text>
+
+  <!-- Portable source -->
+  <g filter="url(#shadow)">
+    <rect x="370" y="150" width="860" height="160" rx="26" fill="#fff" stroke="#93b9e9" stroke-width="3"/>
+  </g>
+  <rect x="404" y="179" width="230" height="42" rx="18" fill="url(#source)"/>
+  <text x="455" y="208" class="ui h3 white">同一份源代码</text>
+  <text x="404" y="251" class="ui body">例如：用 C、Rust 等写下“读取、计算、显示”的逻辑。</text>
+  <text x="404" y="281" class="ui small">若代码避开某个系统独有功能，并通过标准库或适配层表达需求，它就更容易移植。</text>
+  <rect x="950" y="183" width="237" height="88" rx="16" fill="#eef6ff" stroke="#79a9e0" stroke-width="2"/>
+  <text x="975" y="217" class="ui h3">可移植的是“做法”</text>
+  <text x="975" y="245" class="ui small">不是同一个现成二进制</text>
+
+  <path d="M620 313 L330 365" fill="none" stroke="#3174c7" stroke-width="5" marker-end="url(#blueArrow)"/>
+  <path d="M800 313 L800 365" fill="none" stroke="#3174c7" stroke-width="5" marker-end="url(#blueArrow)"/>
+  <path d="M980 313 L1270 365" fill="none" stroke="#3174c7" stroke-width="5" marker-end="url(#blueArrow)"/>
+  <text x="661" y="345" class="ui tiny">选择构建目标</text>
+  <text x="834" y="345" class="ui tiny">选择构建目标</text>
+  <text x="1007" y="345" class="ui tiny">选择构建目标</text>
+
+  <!-- Three target columns -->
+  <g filter="url(#shadow)">
+    <rect x="60" y="376" width="480" height="545" rx="24" fill="#fff" stroke="#7fb4e7" stroke-width="3"/>
+    <rect x="560" y="376" width="480" height="545" rx="24" fill="#fff" stroke="#8acbb9" stroke-width="3"/>
+    <rect x="1060" y="376" width="480" height="545" rx="24" fill="#fff" stroke="#c2abea" stroke-width="3"/>
+  </g>
+
+  <!-- Windows -->
+  <rect x="85" y="400" width="430" height="54" rx="18" fill="#eaf4ff"/>
+  <rect x="104" y="413" width="114" height="28" rx="14" fill="#2877bd"/>
+  <text x="123" y="433" class="ui tiny white">目标 ①</text>
+  <text x="239" y="435" class="ui h2">Windows</text>
+  <rect x="90" y="477" width="420" height="102" rx="16" fill="#f3faff" stroke="#b9d8f5" stroke-width="2"/>
+  <text x="112" y="510" class="ui h3">工具链 / 运行时</text>
+  <text x="112" y="539" class="ui small">编译、链接，并接上 Windows 运行时与依赖。</text>
+  <text x="112" y="564" class="ui tiny">这里会确定调用约定、库接口、打包方式等细节。</text>
+  <path d="M300 581 L300 612" fill="none" stroke="#3174c7" stroke-width="4" marker-end="url(#blueArrow)"/>
+  <rect x="90" y="620" width="420" height="112" rx="16" fill="#f5f1ff" stroke="#c4b6e9" stroke-width="2"/>
+  <text x="112" y="653" class="ui h3">二进制 + 操作系统约定</text>
+  <text x="112" y="681" class="ui mono">PE / .exe  ·  Windows API / ABI</text>
+  <text x="112" y="709" class="ui tiny">文件格式、动态库格式、系统调用接口都要能被目标系统理解。</text>
+  <path d="M300 734 L300 765" fill="none" stroke="#3174c7" stroke-width="4" marker-end="url(#blueArrow)"/>
+  <rect x="90" y="773" width="420" height="118" rx="16" fill="#f9fbff" stroke="#aac5e2" stroke-width="2"/>
+  <text x="112" y="806" class="ui h3">CPU 指令目标</text>
+  <text x="112" y="837" class="ui body">可选择 x86-64，也可选择 ARM64。</text>
+  <text x="112" y="865" class="ui tiny">相同 Windows 不代表不同 CPU 的机器码能互换。</text>
+
+  <!-- Linux -->
+  <rect x="585" y="400" width="430" height="54" rx="18" fill="#e8fbf5"/>
+  <rect x="604" y="413" width="114" height="28" rx="14" fill="#288c73"/>
+  <text x="623" y="433" class="ui tiny white">目标 ②</text>
+  <text x="739" y="435" class="ui h2">Linux</text>
+  <rect x="590" y="477" width="420" height="102" rx="16" fill="#f0fcf8" stroke="#b7e1d5" stroke-width="2"/>
+  <text x="612" y="510" class="ui h3">工具链 / 运行时</text>
+  <text x="612" y="539" class="ui small">同一逻辑会重新编译、链接，并配套目标 Linux 环境。</text>
+  <text x="612" y="564" class="ui tiny">库版本、发行版打包、容器等也会影响实际部署。</text>
+  <path d="M800 581 L800 612" fill="none" stroke="#2d9a7f" stroke-width="4" marker-end="url(#blueArrow)"/>
+  <rect x="590" y="620" width="420" height="112" rx="16" fill="#effaf7" stroke="#a9d9cb" stroke-width="2"/>
+  <text x="612" y="653" class="ui h3">二进制 + 操作系统约定</text>
+  <text x="612" y="681" class="ui mono">ELF  ·  Linux / POSIX 接口与 ABI</text>
+  <text x="612" y="709" class="ui tiny">ELF 不是 PE；同名函数、库与系统调用细节也不必相同。</text>
+  <path d="M800 734 L800 765" fill="none" stroke="#2d9a7f" stroke-width="4" marker-end="url(#blueArrow)"/>
+  <rect x="590" y="773" width="420" height="118" rx="16" fill="#f7fffc" stroke="#aadacb" stroke-width="2"/>
+  <text x="612" y="806" class="ui h3">CPU 指令目标</text>
+  <text x="612" y="837" class="ui body">同样可分别构建 x86-64 或 ARM64。</text>
+  <text x="612" y="865" class="ui tiny">“Linux 程序”仍要问：它为哪种架构构建？</text>
+
+  <!-- macOS -->
+  <rect x="1085" y="400" width="430" height="54" rx="18" fill="#f4efff"/>
+  <rect x="1104" y="413" width="114" height="28" rx="14" fill="#7454b9"/>
+  <text x="1123" y="433" class="ui tiny white">目标 ③</text>
+  <text x="1239" y="435" class="ui h2">macOS</text>
+  <rect x="1090" y="477" width="420" height="102" rx="16" fill="#faf7ff" stroke="#d4c5ef" stroke-width="2"/>
+  <text x="1112" y="510" class="ui h3">工具链 / 运行时</text>
+  <text x="1112" y="539" class="ui small">重新构建，并接上 macOS / Darwin 的框架与运行环境。</text>
+  <text x="1112" y="564" class="ui tiny">软件还可能依赖签名、沙盒或图形框架等系统规则。</text>
+  <path d="M1300 581 L1300 612" fill="none" stroke="#765fd2" stroke-width="4" marker-end="url(#purpleArrow)"/>
+  <rect x="1090" y="620" width="420" height="112" rx="16" fill="#f7f2ff" stroke="#d4c2ef" stroke-width="2"/>
+  <text x="1112" y="653" class="ui h3">二进制 + 操作系统约定</text>
+  <text x="1112" y="681" class="ui mono">Mach-O  ·  Darwin / macOS 接口与 ABI</text>
+  <text x="1112" y="709" class="ui tiny">同一份代码在这里会产生另一种可执行文件和依赖组合。</text>
+  <path d="M1300 734 L1300 765" fill="none" stroke="#765fd2" stroke-width="4" marker-end="url(#purpleArrow)"/>
+  <rect x="1090" y="773" width="420" height="118" rx="16" fill="#fdfbff" stroke="#d4c4ed" stroke-width="2"/>
+  <text x="1112" y="806" class="ui h3">CPU 指令目标</text>
+  <text x="1112" y="837" class="ui body">现代 Mac 常见 ARM64；也有 x86-64 目标。</text>
+  <text x="1112" y="865" class="ui tiny">同一个应用可包含多个架构版本，也可分别提供下载包。</text>
+
+  <!-- Hardware bottom -->
+  <text x="60" y="969" class="ui h2">最后都要落到 CPU 能执行的指令集上</text>
+  <text x="60" y="997" class="ui small">操作系统不是 CPU 里的一个“标签”。开机时加载的内核，才把当前机器组织成 Windows、Linux 或 macOS 环境。</text>
+  <g filter="url(#shadow)">
+    <rect x="60" y="1020" width="548" height="92" rx="20" fill="url(#chip)"/>
+    <rect x="642" y="1020" width="548" height="92" rx="20" fill="url(#chip)"/>
+    <rect x="1224" y="1020" width="316" height="92" rx="20" fill="#fff4d6" stroke="#e5bc56" stroke-width="3"/>
+  </g>
+  <text x="94" y="1057" class="ui h3 white">x86-64 CPU</text>
+  <text x="94" y="1085" class="ui small white">能取指并执行为 x86-64 编码的机器指令。</text>
+  <text x="676" y="1057" class="ui h3 white">ARM64 CPU</text>
+  <text x="676" y="1085" class="ui small white">能取指并执行为 ARM64 编码的机器指令。</text>
+  <text x="1252" y="1056" class="ui h3">要同时匹配</text>
+  <text x="1252" y="1083" class="ui small">系统接口 + ABI + 架构</text>
+  <rect x="60" y="1128" width="1480" height="24" rx="12" fill="#fff1c6"/>
+  <text x="84" y="1146" class="ui tiny">教学简化：真实兼容性还会受库版本、驱动、图形框架、权限、签名、容器、虚拟机或翻译层影响；图中只突出最核心的“源代码 → 目标系统/ABI → 目标指令集”关系。</text>
+</svg>

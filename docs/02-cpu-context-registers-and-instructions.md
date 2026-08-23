@@ -824,6 +824,8 @@ Python 和 JavaScript 源码通常不会像 C/Rust 那样直接被操作系统�
 
 </details>
 
+如果你已经能区分“同源代码”与“同一二进制”，下一步请读[第 6 章：平台、ABI、可执行文件与 CPU 架构](06-platforms-abi-executables-and-cpu-architectures.md)。它会把 Windows、macOS、Linux、PE/ELF/Mach-O、`.exe`、x86-64 和 Arm64 放进同一条兼容性主线。
+
 ---
 
 ## 11. 把 Q002 的概念连回整个系统
@@ -946,4 +948,4 @@ flowchart TB
 5. 比较一个逻辑 CPU 上的并发和多个逻辑 CPU 上的并行，并解释为什么共享计数器需要同步。
 6. 完成后更新 [Q002 的复习记录](../questions/README.md#q002-后续复习记录)。
 
-本章的“线程上下文、并发与调度”已经在[第 5 章：多核 CPU、轮转调度、并发与线程](05-multicore-scheduling-and-threads.md)继续展开；仍待以后提问的主题包括：优先级/实时/负载平衡等更完整调度策略、同步原语、死锁、页表与地址转换缓存（TLB）、缓存一致性、内存顺序、异常处理和系统调用的应用二进制接口约定（ABI）。
+本章的“线程上下文、并发与调度”已经在[第 5 章：多核 CPU、轮转调度、并发与线程](05-multicore-scheduling-and-threads.md)继续展开；“不同操作系统、ABI、可执行文件格式与 CPU 架构为什么影响兼容性”已经在[第 6 章](06-platforms-abi-executables-and-cpu-architectures.md)展开。仍待以后提问的主题包括：优先级/实时/负载平衡等更完整调度策略、同步原语、死锁、页表与地址转换缓存（TLB）、缓存一致性、内存顺序和更深入的异常处理。

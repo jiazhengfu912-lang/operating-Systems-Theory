@@ -15,7 +15,7 @@
 5. 网络语境中的监听进程是持有监听 socket 的普通服务器进程或线程；没连接时它通常在等待，不会一直烧 CPU。详见[第 4 章](04-process-cooperation-ipc-ports-and-client-server.md#71-监听进程到底在监听什么)。
 6. 并发是多个任务在同一段时间都有进展；并行是多个任务在同一瞬间分别在不同逻辑 CPU 上执行。
 7. CPU 需要的是“下一条在哪、寄存器是什么、当前调用到哪”的一条执行路线；这套现场在**线程**上，所以线程通常是调度单位。
-8. 可移植通常指同一份主要逻辑能为不同目标重新构建；同一个已编译文件能否直接运行是另一回事。详见[第 2 章](02-cpu-context-registers-and-instructions.md#105-程序为什么可移植)。
+8. 可移植通常指同一份主要逻辑能为不同目标重新构建；同一个已编译文件能否直接运行是另一回事。先回看[第 2 章](02-cpu-context-registers-and-instructions.md#105-程序为什么可移植)，再到[第 6 章](06-platforms-abi-executables-and-cpu-architectures.md#7-相同软件怎样在不同系统下兼容)看不同系统、ABI 和 CPU 架构怎样影响它。
 9. 同一瞬间能由操作系统安排运行的线程数，通常接近可用**逻辑 CPU**数，不是物理核心数，也不等于系统只能创建这么多软件线程。
 
 ### 1.1 先放进一个具体场景
@@ -292,7 +292,7 @@ flowchart LR
 | 什么是监听进程？ | [第 4 章第 7.1 节](04-process-cooperation-ipc-ports-and-client-server.md#71-监听进程到底在监听什么) |
 | 多核下的并发和并行？ | [本章第 5 节](#5-多核下怎样同时处理并发和并行不是同义词) |
 | 为什么调度线程而不是进程？ | [本章第 6 节](#6-为什么线程通常是执行和调度的基本单位) |
-| 为什么程序可移植？ | [第 2 章第 10.5 节](02-cpu-context-registers-and-instructions.md#105-程序为什么可移植) |
+| 为什么程序可移植？ | [第 2 章第 10.5 节](02-cpu-context-registers-and-instructions.md#105-程序为什么可移植)；[第 6 章第 7 节](06-platforms-abi-executables-and-cpu-architectures.md#7-相同软件怎样在不同系统下兼容) |
 | 核心数与最大执行线程数？ | [本章第 7 节](#7-核心数和最大执行线程数有什么关系) |
 
 ---

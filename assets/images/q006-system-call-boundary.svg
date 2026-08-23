@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1160" viewBox="0 0 1600 1160" role="img" aria-labelledby="title desc">
+  <title id="title">一次系统调用如何受控地从应用进入内核再返回</title>
+  <desc id="desc">教学示意图。以应用请求写入文件为例，从用户态应用和库函数开始，经过系统调用 ABI 约定参数与调用号、CPU 的受控进入指令、内核入口和系统调用分发、文件子系统与驱动，最后带着结果返回用户态。图中特别说明 CPU 不会识别 Windows、Linux 或 macOS 名称；它执行当前内核设置的受控入口和保护规则。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8fbff"/>
+      <stop offset="1" stop-color="#fff9f3"/>
+    </linearGradient>
+    <linearGradient id="user" x1="0" x2="1">
+      <stop offset="0" stop-color="#386fc4"/>
+      <stop offset="1" stop-color="#5e59ba"/>
+    </linearGradient>
+    <linearGradient id="kernel" x1="0" x2="1">
+      <stop offset="0" stop-color="#cb6f36"/>
+      <stop offset="1" stop-color="#a34965"/>
+    </linearGradient>
+    <linearGradient id="gate" x1="0" x2="1">
+      <stop offset="0" stop-color="#266aa7"/>
+      <stop offset="1" stop-color="#9a4c9f"/>
+    </linearGradient>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#2b73c8"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c96d35"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#263452" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .ui { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .h1 { font-size: 34px; font-weight: 800; fill: #17233d; }
+      .h2 { font-size: 24px; font-weight: 800; fill: #17233d; }
+      .h3 { font-size: 20px; font-weight: 800; fill: #17233d; }
+      .body { font-size: 18px; fill: #37455f; }
+      .small { font-size: 16px; fill: #53627d; }
+      .tiny { font-size: 14px; fill: #53627d; }
+      .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 16px; fill: #263653; }
+      .white { fill: #fff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1160" fill="url(#bg)"/>
+  <rect x="40" y="28" width="1520" height="90" rx="22" fill="#fff" filter="url(#shadow)"/>
+  <text x="78" y="77" class="ui h1">系统调用：应用怎样安全地请内核帮忙做一件它自己无权做的事？</text>
+  <text x="78" y="104" class="ui body">例子：应用想把“你好”写进文件。它不能直接控制磁盘；它走 CPU 提供的受控入口，内核检查后代为处理。</text>
+
+  <!-- mode areas -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="148" width="1500" height="380" rx="25" fill="#f6faff" stroke="#9cc3ec" stroke-width="3"/>
+    <rect x="50" y="605" width="1500" height="390" rx="25" fill="#fff8f2" stroke="#ebb17d" stroke-width="3"/>
+  </g>
+  <rect x="78" y="169" width="160" height="34" rx="17" fill="url(#user)"/>
+  <text x="111" y="193" class="ui h3 white">用户态</text>
+  <text x="258" y="193" class="ui small">应用自己的普通执行区域：不能任意访问硬件，也不能随意执行特权指令。</text>
+  <rect x="78" y="626" width="160" height="34" rx="17" fill="url(#kernel)"/>
+  <text x="111" y="650" class="ui h3 white">内核态</text>
+  <text x="258" y="650" class="ui small">操作系统内核受控地管理文件、内存、进程、网络和设备；它仍要检查权限与参数。</text>
+
+  <!-- User-side steps -->
+  <g filter="url(#shadow)">
+    <rect x="92" y="245" width="292" height="210" rx="20" fill="#fff" stroke="#9bbde7" stroke-width="2"/>
+    <rect x="462" y="245" width="310" height="210" rx="20" fill="#fff" stroke="#9bbde7" stroke-width="2"/>
+    <rect x="850" y="235" width="330" height="230" rx="20" fill="#f4f0ff" stroke="#b9a3e6" stroke-width="3"/>
+    <rect x="1258" y="245" width="248" height="210" rx="20" fill="#fff" stroke="#9bbde7" stroke-width="2"/>
+  </g>
+  <rect x="115" y="266" width="80" height="28" rx="14" fill="#3771c5"/>
+  <text x="138" y="286" class="ui tiny white">步骤 1</text>
+  <text x="115" y="327" class="ui h2">应用代码</text>
+  <text x="115" y="360" class="ui mono">save(&quot;note.txt&quot;, &quot;你好&quot;)</text>
+  <text x="115" y="392" class="ui small">你看到的是一个普通函数调用。</text>
+  <text x="115" y="419" class="ui tiny">应用仍在用户态，尚未直接碰设备。</text>
+
+  <rect x="485" y="266" width="80" height="28" rx="14" fill="#3771c5"/>
+  <text x="508" y="286" class="ui tiny white">步骤 2</text>
+  <text x="485" y="327" class="ui h2">库 / API 包装层</text>
+  <text x="485" y="360" class="ui small">库把“写文件”转成系统请求。</text>
+  <text x="485" y="389" class="ui tiny">高层 API 可能先缓存或转换参数。</text>
+  <text x="485" y="421" class="ui mono">write(handle, buffer, length)</text>
+
+  <rect x="873" y="256" width="80" height="28" rx="14" fill="#765bd1"/>
+  <text x="896" y="276" class="ui tiny white">步骤 3</text>
+  <text x="873" y="319" class="ui h2">系统调用 ABI</text>
+  <text x="873" y="350" class="ui small">ABI 是二进制层面的约定：</text>
+  <text x="873" y="378" class="ui small">• 哪个寄存器 / 栈位置放参数</text>
+  <text x="873" y="406" class="ui small">• 用什么调用号表示“写”</text>
+  <text x="873" y="434" class="ui small">• 结果或错误怎样返回</text>
+
+  <rect x="1281" y="266" width="80" height="28" rx="14" fill="#3771c5"/>
+  <text x="1304" y="286" class="ui tiny white">准备好</text>
+  <text x="1281" y="327" class="ui h2">用户态现场</text>
+  <text x="1281" y="360" class="ui small">参数已经按约定放好。</text>
+  <text x="1281" y="389" class="ui tiny">例如：缓冲区地址、长度、文件句柄。</text>
+  <text x="1281" y="421" class="ui tiny">CPU 将执行专用的受控进入指令。</text>
+
+  <path d="M386 350 L452 350" fill="none" stroke="#2b73c8" stroke-width="5" marker-end="url(#arrowBlue)"/>
+  <path d="M775 350 L840 350" fill="none" stroke="#2b73c8" stroke-width="5" marker-end="url(#arrowBlue)"/>
+  <path d="M1182 350 L1248 350" fill="none" stroke="#2b73c8" stroke-width="5" marker-end="url(#arrowBlue)"/>
+
+  <!-- Gate -->
+  <rect x="50" y="542" width="1500" height="48" rx="24" fill="url(#gate)" filter="url(#shadow)"/>
+  <text x="95" y="574" class="ui h3 white">CPU 的受控边界：普通代码不能跳进内核任意位置</text>
+  <text x="685" y="574" class="ui small white">系统调用指令 → 保存必要现场、按 CPU/内核设置进入合法入口、切换到内核受控处理</text>
+  <path d="M1382 458 L1382 533" fill="none" stroke="#7c5cd3" stroke-width="6" marker-end="url(#arrowBlue)"/>
+  <rect x="1270" y="480" width="224" height="40" rx="16" fill="#eee8ff" stroke="#a88de6" stroke-width="2"/>
+  <text x="1297" y="507" class="ui tiny">系统调用专用 CPU 指令</text>
+
+  <!-- Kernel-side steps -->
+  <g filter="url(#shadow)">
+    <rect x="92" y="700" width="300" height="212" rx="20" fill="#fff" stroke="#edb07f" stroke-width="2"/>
+    <rect x="476" y="700" width="310" height="212" rx="20" fill="#fff" stroke="#edb07f" stroke-width="2"/>
+    <rect x="870" y="700" width="310" height="212" rx="20" fill="#fff" stroke="#edb07f" stroke-width="2"/>
+    <rect x="1264" y="700" width="242" height="212" rx="20" fill="#fff" stroke="#edb07f" stroke-width="2"/>
+  </g>
+  <rect x="115" y="721" width="80" height="28" rx="14" fill="#c86a34"/>
+  <text x="138" y="741" class="ui tiny white">步骤 4</text>
+  <text x="115" y="784" class="ui h2">内核入口</text>
+  <text x="115" y="815" class="ui small">内核入口接住请求。</text>
+  <text x="115" y="842" class="ui tiny">保存必要的用户态现场。</text>
+  <text x="115" y="866" class="ui tiny">应用没得到内核权限；内核开始代它处理。</text>
+  <text x="115" y="892" class="ui tiny">返回时仍会回到受限的用户态。</text>
+
+  <rect x="499" y="721" width="80" height="28" rx="14" fill="#c86a34"/>
+  <text x="522" y="741" class="ui tiny white">步骤 5</text>
+  <text x="499" y="784" class="ui h2">检查与分发</text>
+  <text x="499" y="815" class="ui small">按调用号找到处理例程。</text>
+  <text x="499" y="842" class="ui tiny">再验证参数、地址与权限。</text>
+  <text x="499" y="866" class="ui tiny">非法请求会被拒绝或报错。</text>
+
+  <rect x="893" y="721" width="80" height="28" rx="14" fill="#c86a34"/>
+  <text x="916" y="741" class="ui tiny white">步骤 6</text>
+  <text x="893" y="784" class="ui h2">内核子系统</text>
+  <text x="893" y="815" class="ui small">文件系统、缓存等开始协作。</text>
+  <text x="893" y="842" class="ui tiny">此例：定位文件，更新缓存。</text>
+  <text x="893" y="866" class="ui tiny">可能阻塞；CPU 可运行别的线程。</text>
+
+  <rect x="1287" y="721" width="80" height="28" rx="14" fill="#c86a34"/>
+  <text x="1310" y="741" class="ui tiny white">返回</text>
+  <text x="1287" y="784" class="ui h2">资源 / 驱动</text>
+  <text x="1287" y="815" class="ui small">驱动和控制器负责硬件动作。</text>
+  <text x="1287" y="844" class="ui tiny">完成后返回成功字节数或错误码。</text>
+  <text x="1287" y="876" class="ui tiny">返回用户态，再交给应用。</text>
+
+  <path d="M394 806 L466 806" fill="none" stroke="#c96d35" stroke-width="5" marker-end="url(#arrowOrange)"/>
+  <path d="M788 806 L860 806" fill="none" stroke="#c96d35" stroke-width="5" marker-end="url(#arrowOrange)"/>
+  <path d="M1182 806 L1254 806" fill="none" stroke="#c96d35" stroke-width="5" marker-end="url(#arrowOrange)"/>
+  <path d="M1382 916 C1382 970, 1200 1025, 784 1025 C385 1025, 217 978, 217 923" fill="none" stroke="#7c5cd3" stroke-width="5" stroke-dasharray="10 8" marker-end="url(#arrowBlue)"/>
+  <text x="669" y="1050" class="ui small">返回路径：结果 / 错误码 → 恢复用户态现场 → 应用继续执行</text>
+
+  <!-- Key point card -->
+  <g filter="url(#shadow)">
+    <rect x="350" y="1080" width="900" height="52" rx="18" fill="#fff1cb" stroke="#e5ba55" stroke-width="2"/>
+  </g>
+  <text x="382" y="1114" class="ui h3">关键纠正：</text>
+  <text x="500" y="1114" class="ui body">CPU 不会识别“这是 Windows / Linux / macOS”。它只执行机器指令，并按当前内核配置的入口、页表和特权规则工作。</text>
+  <text x="55" y="1150" class="ui tiny">教学简化：不同 CPU 的系统调用指令、寄存器约定、内核入口和文件写入路径各不相同；有些高层 API 会调用多个系统调用，某些写入会先进入缓存而非立即落到磁盘。</text>
+</svg>

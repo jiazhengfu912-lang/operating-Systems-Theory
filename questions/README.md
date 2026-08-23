@@ -1,6 +1,6 @@
 # 问题档案
 
-[返回仓库首页](../README.md) · [查看知识地图](../docs/00-operating-system-knowledge-map.md) · [第 1 章](../docs/01-from-program-to-process.md) · [第 2 章](../docs/02-cpu-context-registers-and-instructions.md) · [第 3 章](../docs/03-mmu-privilege-modes-interrupts-and-apis.md) · [第 4 章](../docs/04-process-cooperation-ipc-ports-and-client-server.md) · [第 5 章](../docs/05-multicore-scheduling-and-threads.md)
+[返回仓库首页](../README.md) · [查看知识地图](../docs/00-operating-system-knowledge-map.md) · [第 1 章](../docs/01-from-program-to-process.md) · [第 2 章](../docs/02-cpu-context-registers-and-instructions.md) · [第 3 章](../docs/03-mmu-privilege-modes-interrupts-and-apis.md) · [第 4 章](../docs/04-process-cooperation-ipc-ports-and-client-server.md) · [第 5 章](../docs/05-multicore-scheduling-and-threads.md) · [第 6 章](../docs/06-platforms-abi-executables-and-cpu-architectures.md)
 
 问题档案保留学习的真实起点。它不是简单的问答列表，而是记录“我在哪里产生疑问、缺少了哪条概念连接、正文在哪里补上、以后怎样检查是否掌握”。
 
@@ -13,6 +13,7 @@
 | Q003 | 2026-08-22 | MMU、特权模式、硬件/软件边界、中断与 API | [MMU、特权模式、中断与系统调用](../docs/03-mmu-privilege-modes-interrupts-and-apis.md) | 已整理 | 待复习 |
 | Q004 | 2026-08-22 | 独立/协作进程、IPC、消息、端口与客户端/服务器 | [进程协作、IPC、端口与客户端/服务器](../docs/04-process-cooperation-ipc-ports-and-client-server.md) | 已整理 | 待复习 |
 | Q005 | 2026-08-23 | 多核、轮转调度、CPU 利用率、栈堆、监听、并发/并行、线程与可移植性 | [多核、调度与线程](../docs/05-multicore-scheduling-and-threads.md)；并补第 1、2、4 章 | 已整理 | 待复习 |
+| Q006 | 2026-08-23 | 不同操作系统、系统调用、ABI、可执行文件与 CPU 架构 | [第 6 章：平台、ABI、可执行文件与 CPU 架构](../docs/06-platforms-abi-executables-and-cpu-architectures.md)；并补[第 3 章 6.4 节](../docs/03-mmu-privilege-modes-interrupts-and-apis.md#64-一次系统调用怎样走完整一趟) | 已整理 | 待复习 |
 
 ## Q001：程序、进程、内存、文件与语言
 
@@ -309,6 +310,66 @@
 - 完成第 5 章末尾的情境自测，并能解释答案原因。
 
 ### Q005 后续复习记录
+
+| 日期 | 复习方式 | 结果 | 仍需澄清 |
+| --- | --- | --- | --- |
+| 尚未复习 | — | — | — |
+
+## Q006：不同操作系统、系统调用、ABI、可执行文件与 CPU 架构
+
+### 原始提问
+
+> 1. Mac、Linux、Windows 系统之间的区别在哪里？
+>
+> 2. 系统调用是如何实现的？
+>
+> 3. 相同软件在不同的系统下是如何兼容的？
+>
+> 4. CPU 是如何判别自己应用与哪个操作系统下面的？
+>
+> 5. ABI 的定义是什么？应用于何处？
+>
+> 6. `.exe` 文件就是可执行文件吗？
+>
+> 7. x86 架构和 ARM 架构的区别是什么？
+
+### 显式问题
+
+1. macOS、Windows 与日常所说的 Linux 系统，在内核/系统、接口、可执行格式和生态上分别有什么区别？
+2. 一次系统调用如何从用户态走到内核，再把结果安全地交回应用？
+3. 同一软件在不同系统下兼容时，应该分开看源代码、产品功能还是同一个二进制文件吗？
+4. CPU、加载器和当前内核分别怎样处理“这份程序属于哪个目标环境”的问题？
+5. ABI 是什么？它和 API、ISA、动态库、函数调用及系统调用怎样连接？
+6. `.exe`、PE、ELF、Mach-O、机器码和“可以启动”分别是不是同一件事？
+7. x86-64 与 Arm64 的指令、二进制和操作系统支持怎样区分？
+
+### 从本次问题推断的待澄清连接
+
+以下是为了安排教学顺序作出的推断，不是对学习能力的定论。
+
+| 待澄清连接 | 为什么需要先连接 | 正文位置 | 状态 |
+| --- | --- | --- | --- |
+| Mac 硬件 ↔ macOS；Linux 内核 ↔ Linux 发行版 ↔ Windows 系统家族 | 如果把硬件品牌、内核和完整系统当作同一层，三者的区别会变成只比较界面 | [第 6 章第 2 节](../docs/06-platforms-abi-executables-and-cpu-architectures.md#2-先把-macoslinuxwindows-放到同一层) | 已整理，待复习 |
+| 应用 API ↔ 系统调用 ABI ↔ CPU 受控入口 ↔ 内核参数检查 ↔ 返回/阻塞 | “调用函数”与“进入内核”不是同一动作；把这条链补齐才能理解安全边界 | [第 3 章第 6.4 节](../docs/03-mmu-privilege-modes-interrupts-and-apis.md#64-一次系统调用怎样走完整一趟) | 已整理，待按读取文件复述 |
+| CPU 的 ISA ↔ 加载器的文件格式识别 ↔ 当前内核的系统调用入口 | CPU 不会识别 Windows/Linux/macOS 名称；不同对象各自认识不同层的信息 | [第 6 章第 3 节](../docs/06-platforms-abi-executables-and-cpu-architectures.md#3-cpu-不负责判断这个应用属于哪个操作系统) | 已整理，待区分三方职责 |
+| API ↔ ABI ↔ 动态库 / 链接器 ↔ 系统调用 ABI | 不分源码约定和二进制约定，会误解“函数名一样就一定能一起工作” | [第 6 章第 4 节](../docs/06-platforms-abi-executables-and-cpu-architectures.md#4-abi编译后的程序怎样彼此接得上) | 已整理，待用 `add(a, b)` 例子解释 |
+| `.exe` 扩展名 ↔ PE/ELF/Mach-O 文件格式 ↔ 机器码 ↔ 能否启动 | 只看文件名会漏掉目标架构、依赖、权限和加载器的要求 | [第 6 章第 5 节](../docs/06-platforms-abi-executables-and-cpu-architectures.md#5-exe-文件就是可执行文件吗) | 已整理，待分析一个失败例子 |
+| x86-64 / Arm64 ISA ↔ 编译目标 ↔ 系统支持 ↔ 二进制翻译 | “x86 就是 Windows、Arm 就是手机”的说法混淆了 CPU 语言和操作系统 | [第 6 章第 6 节](../docs/06-platforms-abi-executables-and-cpu-architectures.md#6-x86-与-arm同一个算法怎样变成两套机器指令) | 已整理，待区分原生与翻译运行 |
+| 源码可移植 ↔ 二进制兼容 ↔ 运行时 / 虚拟机 / 兼容层 | “相同软件能兼容”至少有三种不同含义，不拆开就会把额外转换当作天然兼容 | [第 6 章第 7 节](../docs/06-platforms-abi-executables-and-cpu-architectures.md#7-相同软件怎样在不同系统下兼容) | 已整理，待说出三种层次 |
+
+### Q006 的掌握标准
+
+当能够不看正文完成以下任务时，才把学习状态从“待复习”改为“已掌握”：
+
+- 写出 `Windows x86-64 PE`、`Linux Arm64 ELF`、`macOS Arm64 Mach-O` 三行，并在每一行分别标出操作系统环境、CPU ISA 和文件格式；
+- 用“应用 API → 系统调用 ABI → CPU 受控入口 → 内核检查/可能阻塞 → 受控返回”演出一次读取文件；
+- 用一句话分别说明 CPU、加载器和内核主要“认识”什么，并解释 CPU 为什么没有“操作系统品牌寄存器”；
+- 用一个独立编译的 `add(a, b)` 例子区分 API、ABI 和 ISA；
+- 解释 `.exe` 为什么既不等于所有可执行文件，也不保证当前机器一定能启动它；
+- 说明“同一份主要源码”“同一个产品”“同一个二进制文件”三种“相同软件”的差别；
+- 完成第 6 章末尾的情境自测，并能解释答案原因。
+
+### Q006 后续复习记录
 
 | 日期 | 复习方式 | 结果 | 仍需澄清 |
 | --- | --- | --- | --- |

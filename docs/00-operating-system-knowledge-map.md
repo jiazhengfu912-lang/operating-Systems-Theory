@@ -1,6 +1,6 @@
 # 操作系统知识地图
 
-[返回仓库首页](../README.md) · [第 1 章：从程序到进程](01-from-program-to-process.md) · [第 2 章：CPU、上下文与指令](02-cpu-context-registers-and-instructions.md) · [第 3 章：MMU、特权模式、中断与系统调用](03-mmu-privilege-modes-interrupts-and-apis.md) · [第 4 章：进程协作、IPC、端口与客户端/服务器](04-process-cooperation-ipc-ports-and-client-server.md) · [第 5 章：多核、调度与线程](05-multicore-scheduling-and-threads.md) · [查看问题档案](../questions/README.md)
+[返回仓库首页](../README.md) · [第 1 章：从程序到进程](01-from-program-to-process.md) · [第 2 章：CPU、上下文与指令](02-cpu-context-registers-and-instructions.md) · [第 3 章：MMU、特权模式、中断与系统调用](03-mmu-privilege-modes-interrupts-and-apis.md) · [第 4 章：进程协作、IPC、端口与客户端/服务器](04-process-cooperation-ipc-ports-and-client-server.md) · [第 5 章：多核、调度与线程](05-multicore-scheduling-and-threads.md) · [第 6 章：平台、ABI、可执行文件与 CPU 架构](06-platforms-abi-executables-and-cpu-architectures.md) · [查看问题档案](../questions/README.md)
 
 ## 1. 先看全局：操作系统包含哪些“系统”
 
@@ -23,6 +23,7 @@ flowchart TB
     OS --> NET["网络子系统<br/>套接字、协议栈、网络设备"]
     OS --> VIRT["虚拟化与容器<br/>虚拟机、命名空间、资源隔离"]
     OS --> BOOT["启动与内核结构<br/>引导、内核初始化、系统服务"]
+    OS --> PLATFORM["平台与二进制兼容<br/>系统接口、ABI、可执行格式、CPU ISA"]
 
     EXEC --> CURRENT1["已展开：程序 → 进程"]
     CURRENT1 --> MEMNOW["虚拟地址空间和内存区域"]
@@ -46,13 +47,18 @@ flowchart TB
     CURRENT5 --> RRNOW["轮转、时间片、阻塞与唤醒"]
     CURRENT5 --> PARANOW["并发、并行、利用率与线程执行单位"]
     CURRENT5 --> STACKNOW["每线程栈、SP 与函数调用"]
+    PLATFORM --> CURRENT6["已展开：不同系统怎样运行同一份软件"]
+    CURRENT6 --> OSNOW["Windows、macOS、Linux 环境"]
+    CURRENT6 --> ABINOW["API、ABI、系统调用 ABI"]
+    CURRENT6 --> IMAGENOW["PE、ELF、Mach-O 与 .exe"]
+    CURRENT6 --> ISANOW["x86-64、Arm64 与机器码"]
 
     classDef root fill:#f4cccc,stroke:#990000,color:#222;
     classDef current fill:#d9ead3,stroke:#38761d,color:#222;
     classDef framework fill:#d9eaf7,stroke:#3d85c6,color:#222;
     class OS root;
-    class CURRENT1,CURRENT2,CURRENT3,CURRENT4,CURRENT5,MEMNOW,FILENOW,RUNTIME,CPUNOW,CONCNOW,MMUNOW,PRIVNOW,ENTRYNOW,IONOW,IPCNOW,SHMNOW,MSGNOW,NETNOW,CORENOW,RRNOW,PARANOW,STACKNOW current;
-    class BASE,EXEC,CPU,MEM,CONC,FS,IO,SEC,NET,VIRT,BOOT framework;
+    class CURRENT1,CURRENT2,CURRENT3,CURRENT4,CURRENT5,CURRENT6,MEMNOW,FILENOW,RUNTIME,CPUNOW,CONCNOW,MMUNOW,PRIVNOW,ENTRYNOW,IONOW,IPCNOW,SHMNOW,MSGNOW,NETNOW,CORENOW,RRNOW,PARANOW,STACKNOW,OSNOW,ABINOW,IMAGENOW,ISANOW current;
+    class BASE,EXEC,CPU,MEM,CONC,FS,IO,SEC,NET,VIRT,BOOT,PLATFORM framework;
 ```
 
 颜色含义：绿色是本次已经详细整理的链路，蓝色是只建立位置的知识框架。
@@ -70,6 +76,7 @@ flowchart TB
 | 设备与 I/O | 键盘、屏幕、磁盘、串口和网卡怎样与软件协作？ | 已学习“应用请求 → 内核/驱动 → 设备完成通知”的基础链路 | 部分已整理 |
 | 保护与安全 | 谁能访问哪些进程、内存、文件和设备？ | 已学习特权级、MMU 权限、异常、内核检查，以及 IPC 端点不等于自动授权的基础边界 | 部分已整理 |
 | 网络子系统 | 进程怎样跨机器交换数据？ | 已学习套接字、端口、监听、客户端/服务器的入门关系；协议栈和网络可靠性仍待展开 | 部分已整理 |
+| 平台与二进制兼容 | 为什么同一软件在不同系统和 CPU 上常要准备不同成品？ | 已学习 Windows、macOS、Linux 环境，API/ABI、PE/ELF/Mach-O、`.exe` 和 x86-64/Arm64 怎样共同决定原生兼容性 | 已整理，待复习 |
 | 虚拟化与容器 | 怎样在一台机器上构造多个隔离的运行环境？ | 它们会进一步隔离或虚拟化进程看到的资源 | 框架 |
 | 启动与内核结构 | 开机后内核怎样建立系统并启动第一个用户进程？ | 所有普通进程都建立在内核已完成初始化的基础上 | 框架 |
 
@@ -89,6 +96,11 @@ flowchart TB
 
 ```mermaid
 flowchart LR
+    SOURCE6["同一份主要源代码"] --> BUILD6["为具体目标构建"]
+    BUILD6 --> TARGET6["目标：OS 环境 + ABI + CPU ISA"]
+    TARGET6 --> EXE
+    TARGET6 --> OS6["Windows / macOS / Linux 环境"]
+    TARGET6 --> ISA6["x86-64 / Arm64 等指令集"]
     DISK["磁盘与文件系统"] --> EXE["可执行文件中的代码和数据"]
     EXE --> LOADER["内核与加载器"]
     LOADER --> PROCESS["进程：资源与隔离容器"]
@@ -118,7 +130,8 @@ flowchart LR
     VAS --> FILEMAP["也可能由可执行文件或映射文件支持"]
     MMU --> EXCEPTION["当前访问不能直接完成<br/>时产生同步异常"]
     PROCESS --> API["库或运行时 API"]
-    API --> SYSCALL["系统调用：请求内核服务"]
+    API --> SCABI["系统调用 ABI：二进制交接规则"]
+    SCABI --> SYSCALL["系统调用：请求内核服务"]
     SYSCALL --> ENTRY
     EXCEPTION --> ENTRY["系统调用、同步异常、外部中断<br/>经受控入口进入内核"]
     ENTRY --> KERNEL
@@ -139,7 +152,7 @@ flowchart LR
     LISTENER --> SERVER["服务器进程：处理并响应"]
 ```
 
-第 1 章从磁盘上的程序开始，沿着操作系统创建进程的过程连接到内存和文件；第 2 章再从线程追踪到 CPU、寄存器、上下文和基础保护；第 3 章补上了“普通程序怎样受控地进入内核、内核怎样和设备协作”的边界；第 4 章从进程隔离出发，解释怎样通过共享映射或消息通道合作，再把套接字、端口和客户端/服务器接进来；第 5 章把物理核心、逻辑 CPU、就绪队列、轮转时间片、阻塞/唤醒、每线程的栈和 SP 接回这条主干。后续学习更完整的调度策略、同步原语、分页算法或文件系统内部结构时，都可以回到这条主干继续向外扩展。
+第 1 章从磁盘上的程序开始，沿着操作系统创建进程的过程连接到内存和文件；第 2 章再从线程追踪到 CPU、寄存器、上下文和基础保护；第 3 章补上了“普通程序怎样受控地进入内核、内核怎样和设备协作”的边界；第 4 章从进程隔离出发，解释怎样通过共享映射或消息通道合作，再把套接字、端口和客户端/服务器接进来；第 5 章把物理核心、逻辑 CPU、就绪队列、轮转时间片、阻塞/唤醒、每线程的栈和 SP 接回这条主干；第 6 章再从同一份主要源代码出发，补上目标操作系统环境、ABI、可执行文件格式和 CPU 指令集为什么必须同时匹配。后续学习更完整的调度策略、同步原语、分页算法或文件系统内部结构时，都可以回到这条主干继续向外扩展。
 
 ## 5. 三组贯穿操作系统的关系
 
@@ -170,7 +183,7 @@ flowchart LR
 - 线程同步原语和死锁处理（目前知道共享内存为什么需要同步，尚未展开锁、信号量等机制）；
 - 页表结构、地址转换缓存（TLB）、完整缺页处理和页面置换算法；
 - 文件系统内部数据结构和崩溃一致性；
-- 系统调用的具体参数传递、内核入口现场保存和返回细节；
+- 不同架构/系统的具体系统调用寄存器表、快速路径、内核入口现场保存和返回实现；
 - 驱动实现、DMA、IOMMU 与设备中断控制器；
 - 网络协议栈、TCP/UDP 细节、可靠性与拥塞控制（目前只介绍了端口、套接字和客户端/服务器的入口关系）；
 - 账户/文件权限模型、攻击与防护（目前只介绍了硬件保护和内核检查的基础边界）；
