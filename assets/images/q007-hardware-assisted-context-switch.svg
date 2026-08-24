@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1390" viewBox="0 0 1600 1390" role="img" aria-labelledby="title desc">
+  <title id="title">中断后怎样安全保存现场并切换线程：两种硬件辅助设计</title>
+  <desc id="desc">教学示意图。单个逻辑 CPU 上的线程 A 因定时器中断交给内核。图先展示 A 的寄存器现场，然后并列展示两种课程中的硬件辅助模型：备用或分组寄存器，以及硬件自动记录最小返回现场。两条路径最终都由内核把 A 的完整上下文保存到内存、调度并恢复线程 B，最后受控返回。图强调细节依 CPU 架构和操作系统而异，中断本身不必然导致线程切换。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7fbff"/>
+      <stop offset="1" stop-color="#fffaf4"/>
+    </linearGradient>
+    <linearGradient id="thread" x1="0" x2="1">
+      <stop offset="0" stop-color="#2e73c9"/>
+      <stop offset="1" stop-color="#655ac5"/>
+    </linearGradient>
+    <linearGradient id="hardware" x1="0" x2="1">
+      <stop offset="0" stop-color="#7756bf"/>
+      <stop offset="1" stop-color="#a14d94"/>
+    </linearGradient>
+    <linearGradient id="kernel" x1="0" x2="1">
+      <stop offset="0" stop-color="#c96c35"/>
+      <stop offset="1" stop-color="#a94761"/>
+    </linearGradient>
+    <linearGradient id="memory" x1="0" x2="1">
+      <stop offset="0" stop-color="#2c8a79"/>
+      <stop offset="1" stop-color="#27759c"/>
+    </linearGradient>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#2b73c8"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#7858bd"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c96d35"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#278779"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#263452" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .ui { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .h1 { font-size: 34px; font-weight: 800; fill: #17233d; }
+      .h2 { font-size: 24px; font-weight: 800; fill: #17233d; }
+      .h3 { font-size: 20px; font-weight: 800; fill: #17233d; }
+      .body { font-size: 18px; fill: #37455f; }
+      .small { font-size: 16px; fill: #53627d; }
+      .tiny { font-size: 14px; fill: #53627d; }
+      .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 16px; fill: #263653; }
+      .white { fill: #fff; }
+      .muted { fill: #6c7a90; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1390" fill="url(#bg)"/>
+
+  <!-- Header -->
+  <g filter="url(#shadow)">
+    <rect x="40" y="28" width="1520" height="94" rx="22" fill="#fff"/>
+  </g>
+  <text x="78" y="76" class="ui h1">定时器中断到线程切换：为什么 A 的寄存器不会被 B 覆盖？</text>
+  <text x="78" y="105" class="ui body">场景：一个逻辑 CPU 正在执行线程 A；时间片到期后，硬件把控制权安全交给内核。内核才决定是否改跑线程 B。</text>
+
+  <!-- Key correction -->
+  <g filter="url(#shadow)">
+    <rect x="160" y="146" width="1280" height="60" rx="20" fill="#fff1cb" stroke="#e3b953" stroke-width="2"/>
+  </g>
+  <text x="194" y="183" class="ui h3">先记住：</text>
+  <text x="316" y="183" class="ui body">中断给内核一个受控处理机会，不等于“CPU 一收到中断就一定换线程”。若调度器仍选 A，A 也可以继续运行。</text>
+
+  <!-- Step 1: A running -->
+  <g filter="url(#shadow)">
+    <rect x="54" y="252" width="324" height="388" rx="24" fill="#f5f9ff" stroke="#9bbde7" stroke-width="3"/>
+  </g>
+  <rect x="78" y="274" width="111" height="30" rx="15" fill="url(#thread)"/>
+  <text x="101" y="296" class="ui tiny white">步骤 1</text>
+  <text x="78" y="342" class="ui h2">线程 A 正在用户态运行</text>
+  <text x="78" y="372" class="ui small">此刻 CPU 里的“现场”属于 A。</text>
+  <g>
+    <rect x="78" y="397" width="276" height="42" rx="11" fill="#e8f1ff" stroke="#b1cef2"/>
+    <text x="94" y="424" class="ui mono">PC  → A 的下一条指令</text>
+    <rect x="78" y="448" width="276" height="42" rx="11" fill="#eef2ff" stroke="#c0b9ec"/>
+    <text x="94" y="475" class="ui mono">GPR → A 正在计算的值</text>
+    <rect x="78" y="499" width="276" height="42" rx="11" fill="#e8f8f5" stroke="#abd9d0"/>
+    <text x="94" y="526" class="ui mono">SP  → A 的调用栈位置</text>
+    <rect x="78" y="550" width="276" height="42" rx="11" fill="#fff4e7" stroke="#ecc99c"/>
+    <text x="94" y="577" class="ui mono">状态/标志 → 条件、模式等</text>
+  </g>
+  <text x="78" y="619" class="ui tiny">PC：程序计数器；GPR：通用寄存器；SP：栈指针。</text>
+
+  <!-- Timer -->
+  <g filter="url(#shadow)">
+    <rect x="422" y="370" width="176" height="152" rx="22" fill="#fff" stroke="#a98add" stroke-width="3"/>
+  </g>
+  <circle cx="510" cy="405" r="23" fill="#f0eaff" stroke="#8d6dcc" stroke-width="3"/>
+  <path d="M510 389 L510 406 L524 414" fill="none" stroke="#7858bd" stroke-width="4" stroke-linecap="round"/>
+  <text x="451" y="455" class="ui h3">定时器到期</text>
+  <text x="444" y="481" class="ui small">硬件中断请求</text>
+  <text x="440" y="505" class="ui tiny">典型的抢占触发来源</text>
+  <path d="M380 446 L412 446" fill="none" stroke="#2b73c8" stroke-width="5" marker-end="url(#arrowBlue)"/>
+
+  <!-- Hardware handoff -->
+  <g filter="url(#shadow)">
+    <rect x="644" y="252" width="392" height="388" rx="24" fill="#faf6ff" stroke="#ba9ae7" stroke-width="3"/>
+  </g>
+  <rect x="670" y="274" width="142" height="30" rx="15" fill="url(#hardware)"/>
+  <text x="692" y="296" class="ui tiny white">硬件边界</text>
+  <text x="670" y="342" class="ui h2">CPU 接住中断，进入内核</text>
+  <text x="670" y="372" class="ui small">CPU 先完成当前指令，再按架构规则受控转移。</text>
+  <rect x="670" y="397" width="340" height="80" rx="14" fill="#fff" stroke="#c9b7eb" stroke-width="2"/>
+  <text x="690" y="426" class="ui h3">最小返回现场必须先安全留下</text>
+  <text x="690" y="452" class="ui tiny">至少包括“回来从哪里继续”的 PC 和状态；</text>
+  <text x="690" y="471" class="ui tiny">SP 是否也自动记录，取决于架构与入口方式。</text>
+  <rect x="670" y="489" width="340" height="83" rx="14" fill="#f4efff" stroke="#c9b7eb" stroke-width="2"/>
+  <text x="690" y="518" class="ui h3">然后跳到内核预设的中断入口</text>
+  <text x="690" y="544" class="ui tiny">切到特权执行环境；普通应用不能任选内核地址。</text>
+  <text x="690" y="563" class="ui tiny">CPU 不会识别 Windows / Linux 名称，只执行当前配置。</text>
+  <text x="670" y="613" class="ui tiny">重要：硬件通常不会替内核保存“所有”通用寄存器。</text>
+  <path d="M600 446 L634 446" fill="none" stroke="#7858bd" stroke-width="5" marker-end="url(#arrowPurple)"/>
+
+  <!-- Fork caption -->
+  <text x="800" y="687" text-anchor="middle" class="ui h2">课程里的两种“硬件辅助保存现场”模型</text>
+  <text x="800" y="714" text-anchor="middle" class="ui small">它们解决同一个难题：内核第一条软件指令执行前，不能把 A 需要恢复的值弄丢。</text>
+  <path d="M840 642 L840 745 L422 745 L422 774" fill="none" stroke="#7858bd" stroke-width="5" marker-end="url(#arrowPurple)"/>
+  <path d="M840 642 L840 745 L1178 745 L1178 774" fill="none" stroke="#7858bd" stroke-width="5" marker-end="url(#arrowPurple)"/>
+
+  <!-- Path A -->
+  <g filter="url(#shadow)">
+    <rect x="54" y="780" width="724" height="332" rx="24" fill="#f7f8ff" stroke="#a898dd" stroke-width="3"/>
+  </g>
+  <rect x="80" y="804" width="208" height="30" rx="15" fill="url(#hardware)"/>
+  <text x="105" y="826" class="ui tiny white">路径 A：备用 / 分组寄存器</text>
+  <text x="80" y="872" class="ui h2">硬件换一套可用寄存器，先不碰 A 的那一套</text>
+  <text x="80" y="901" class="ui small">概念模型：用户寄存器组变为不可直接使用，特权寄存器组供内核入口代码使用。</text>
+  <g>
+    <rect x="82" y="932" width="278" height="119" rx="16" fill="#eaf1ff" stroke="#9ebfe9" stroke-width="2"/>
+    <text x="104" y="962" class="ui h3">A 的用户寄存器组</text>
+    <text x="104" y="989" class="ui mono">GPR_A, SP_A, flags_A</text>
+    <text x="104" y="1015" class="ui tiny">被硬件暂时隔离，避免内核入口覆盖。</text>
+    <text x="104" y="1037" class="ui tiny">返回 PC / 状态还须按该架构的规则保存。</text>
+    <rect x="454" y="932" width="278" height="119" rx="16" fill="#fff1e8" stroke="#e9b27e" stroke-width="2"/>
+    <text x="476" y="962" class="ui h3">内核的特权寄存器组</text>
+    <text x="476" y="989" class="ui mono">GPR_K, SP_K, entry state</text>
+    <text x="476" y="1015" class="ui tiny">内核用它运行保存代码，再把 A 的值复制到内存。</text>
+  </g>
+  <path d="M364 990 L442 990" fill="none" stroke="#7858bd" stroke-width="5" marker-end="url(#arrowPurple)"/>
+  <text x="80" y="1085" class="ui tiny">这是课程使用的概念性设计；现代 CPU 并不一定真的提供这种完整的寄存器组切换。</text>
+
+  <!-- Path B -->
+  <g filter="url(#shadow)">
+    <rect x="822" y="780" width="724" height="332" rx="24" fill="#fff9f3" stroke="#e9b47e" stroke-width="3"/>
+  </g>
+  <rect x="848" y="804" width="198" height="30" rx="15" fill="url(#hardware)"/>
+  <text x="874" y="826" class="ui tiny white">路径 B：自动最小保存</text>
+  <text x="848" y="872" class="ui h2">硬件先把“能回来”的少量状态放到安全处</text>
+  <text x="848" y="901" class="ui small">再跳进内核；入口代码必须在破坏寄存器前，补齐尚未保存的 A 的状态。</text>
+  <g>
+    <rect x="850" y="932" width="286" height="119" rx="16" fill="#f2eaff" stroke="#c6ade7" stroke-width="2"/>
+    <text x="872" y="962" class="ui h3">硬件先记录</text>
+    <text x="872" y="989" class="ui mono">return PC + status (+/- SP)</text>
+    <text x="872" y="1015" class="ui tiny">位置可能是内核栈或架构专用存储。</text>
+    <text x="872" y="1037" class="ui tiny">“+/- SP”表示是否自动保存因平台而异。</text>
+    <rect x="1194" y="932" width="306" height="119" rx="16" fill="#fff1e8" stroke="#e9b27e" stroke-width="2"/>
+    <text x="1216" y="962" class="ui h3">内核入口随后补齐</text>
+    <text x="1216" y="989" class="ui mono">GPR_A, vector/FPU …</text>
+    <text x="1216" y="1015" class="ui tiny">只要将要改写，就先保存；具体集合由内核决定。</text>
+    <text x="1216" y="1037" class="ui tiny">不能把“自动最小保存”误解成完整切换已完成。</text>
+  </g>
+  <path d="M1140 990 L1182 990" fill="none" stroke="#7858bd" stroke-width="5" marker-end="url(#arrowPurple)"/>
+  <text x="848" y="1085" class="ui tiny">这是更接近常见现代思路的抽象说法；具体自动保存字段和入口序列依 CPU 与内核不同。</text>
+
+  <!-- Shared kernel action -->
+  <g filter="url(#shadow)">
+    <rect x="54" y="1152" width="1492" height="170" rx="24" fill="#fff" stroke="#e0ad7e" stroke-width="3"/>
+  </g>
+  <rect x="80" y="1176" width="162" height="30" rx="15" fill="url(#kernel)"/>
+  <text x="106" y="1198" class="ui tiny white">两条路共同的内核工作</text>
+  <text x="80" y="1241" class="ui h2">保存 A → 作出调度决定 → 恢复 B → 受控返回</text>
+  <g>
+    <rect x="80" y="1261" width="296" height="42" rx="12" fill="#eaf7f4" stroke="#a3d5ca" stroke-width="2"/>
+    <text x="97" y="1288" class="ui small">① 把 A 的完整现场存进内核管理的 A 记录</text>
+    <rect x="394" y="1261" width="308" height="42" rx="12" fill="#fff5e9" stroke="#ebc693" stroke-width="2"/>
+    <text x="411" y="1288" class="ui small">② A：运行 → 就绪；调度器从就绪队列选 B</text>
+    <rect x="720" y="1261" width="330" height="42" rx="12" fill="#edf3ff" stroke="#b5cbef" stroke-width="2"/>
+    <text x="737" y="1288" class="ui small">③ 从 B 的记录恢复 GPR、PC、SP、状态等</text>
+    <rect x="1068" y="1261" width="446" height="42" rx="12" fill="#f3edff" stroke="#c8b7e8" stroke-width="2"/>
+    <text x="1085" y="1288" class="ui small">④ 返回用户态；PC_B 指向 B 上次暂停后的下一条指令</text>
+  </g>
+  <path d="M378 1282 L385 1282" fill="none" stroke="#c96d35" stroke-width="5" marker-end="url(#arrowOrange)"/>
+  <path d="M704 1282 L711 1282" fill="none" stroke="#c96d35" stroke-width="5" marker-end="url(#arrowOrange)"/>
+  <path d="M1052 1282 L1059 1282" fill="none" stroke="#c96d35" stroke-width="5" marker-end="url(#arrowOrange)"/>
+  <text x="80" y="1355" class="ui tiny">为什么不会丢失？A 的值在被 B 重用 CPU 寄存器前，已被硬件和内核按各自职责复制到内存；以后恢复同一份 A 的记录即可继续。若 B 属于另一进程，内核还可能切换其地址空间映射。</text>
+  <text x="80" y="1378" class="ui tiny">教学边界：本图并非任何一款 CPU 的精确电路图。“两种路径”是 P08 课程中的硬件辅助设计模型，不是所有中断的通用分类；保存字段、特权级、栈与返回指令都会随 x86、Arm 和操作系统而变。</text>
+</svg>

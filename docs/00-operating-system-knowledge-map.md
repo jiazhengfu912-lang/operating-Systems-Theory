@@ -31,6 +31,7 @@ flowchart TB
     CURRENT1 --> RUNTIME["语言运行时如何落到进程"]
     CURRENT1 --> CURRENT2["已展开：线程上下文 → CPU 执行"]
     CURRENT2 --> CPUNOW["寄存器、PID / PCB / TCB、上下文切换"]
+    CURRENT2 --> IRQCTX7["Q007：中断入口、最小返回状态与保存 / 恢复"]
     CURRENT2 --> CONCNOW["并发、调度与基础保护"]
     BASE --> CURRENT3["已展开：MMU 与受控进入内核"]
     CURRENT3 --> MMUNOW["虚拟地址、页表、MMU 与访问权限"]
@@ -57,7 +58,7 @@ flowchart TB
     classDef current fill:#d9ead3,stroke:#38761d,color:#222;
     classDef framework fill:#d9eaf7,stroke:#3d85c6,color:#222;
     class OS root;
-    class CURRENT1,CURRENT2,CURRENT3,CURRENT4,CURRENT5,CURRENT6,MEMNOW,FILENOW,RUNTIME,CPUNOW,CONCNOW,MMUNOW,PRIVNOW,ENTRYNOW,IONOW,IPCNOW,SHMNOW,MSGNOW,NETNOW,CORENOW,RRNOW,PARANOW,STACKNOW,OSNOW,ABINOW,IMAGENOW,ISANOW current;
+    class CURRENT1,CURRENT2,CURRENT3,CURRENT4,CURRENT5,CURRENT6,MEMNOW,FILENOW,RUNTIME,CPUNOW,IRQCTX7,CONCNOW,MMUNOW,PRIVNOW,ENTRYNOW,IONOW,IPCNOW,SHMNOW,MSGNOW,NETNOW,CORENOW,RRNOW,PARANOW,STACKNOW,OSNOW,ABINOW,IMAGENOW,ISANOW current;
     class BASE,EXEC,CPU,MEM,CONC,FS,IO,SEC,NET,VIRT,BOOT,PLATFORM framework;
 ```
 
@@ -69,7 +70,7 @@ flowchart TB
 | --- | --- | --- | --- |
 | 基础边界 | 应用程序为什么不能随意操作硬件？怎样请求内核服务？ | 已学习用户态/内核态、模式位、API、系统调用、同步异常和外部中断的基础关系 | 部分已整理 |
 | 程序、进程与线程 | 磁盘上的代码怎样成为正在执行的活动？谁拥有资源，谁真正执行指令？ | 已学习进程、线程、PID、PCB 与 TCB 的基本关系，也补上每线程的栈、SP 与执行状态 | 已整理 |
-| CPU 管理 | 多个可运行线程怎样轮流获得 CPU？切换时保存什么？ | 已学习物理核心、逻辑 CPU、时间片轮转、阻塞/唤醒与“线程通常是被调度单位”的基础 | 部分已整理 |
+| CPU 管理 | 多个可运行线程怎样轮流获得 CPU？切换时保存什么？ | 已学习物理核心、逻辑 CPU、时间片轮转、阻塞/唤醒与“线程通常是被调度单位”的基础；也已拆开中断入口、硬件先保护最小返回状态、内核补齐线程现场与调度决定的先后关系 | 部分已整理 |
 | 内存管理 | 每个进程怎样获得看似独立的地址空间？内存不够时怎么办？ | 已学习虚拟地址空间、页表规则、MMU 翻译与权限检查的直觉 | 部分已整理 |
 | 并发与同步 | 多个执行流同时访问共享数据时，怎样保持正确？ | 已学习单逻辑 CPU 的并发、多逻辑 CPU 的并行、抢占和竞态的基础，也知道共享内存协作仍需同步；同步原语仍待展开 | 部分已整理 |
 | 文件与存储 | 字节怎样长期保存在设备上？路径、文件和目录怎样组织？ | 本次已学习进程怎样通过句柄打开 txt 文件 | 部分已整理 |
@@ -109,6 +110,9 @@ flowchart LR
     THREAD --> TCB["TCB：内核记录的线程管理信息"]
     THREAD --> CONTEXT["线程上下文：寄存器、程序计数器、栈等"]
     CONTEXT --> SCHED["调度器保存 / 恢复上下文"]
+    ENTRY --> MINCTX7["硬件先保护最小返回状态"]
+    MINCTX7 --> SCHED
+    MINCTX7 --> SAVEMODEL7["寄存器组切换，或自动保存关键状态"]
     SCHED --> LOGCPU["逻辑 CPU：调度器看到的执行位置"]
     CORE["物理核心：真实主要硬件执行单元"] --> LOGCPU
     LOGCPU --> CPU["CPU 取指、译码、执行"]
@@ -152,7 +156,7 @@ flowchart LR
     LISTENER --> SERVER["服务器进程：处理并响应"]
 ```
 
-第 1 章从磁盘上的程序开始，沿着操作系统创建进程的过程连接到内存和文件；第 2 章再从线程追踪到 CPU、寄存器、上下文和基础保护；第 3 章补上了“普通程序怎样受控地进入内核、内核怎样和设备协作”的边界；第 4 章从进程隔离出发，解释怎样通过共享映射或消息通道合作，再把套接字、端口和客户端/服务器接进来；第 5 章把物理核心、逻辑 CPU、就绪队列、轮转时间片、阻塞/唤醒、每线程的栈和 SP 接回这条主干；第 6 章再从同一份主要源代码出发，补上目标操作系统环境、ABI、可执行文件格式和 CPU 指令集为什么必须同时匹配。后续学习更完整的调度策略、同步原语、分页算法或文件系统内部结构时，都可以回到这条主干继续向外扩展。
+第 1 章从磁盘上的程序开始，沿着操作系统创建进程的过程连接到内存和文件；第 2 章再从线程追踪到 CPU、寄存器、上下文和基础保护，并在 Q007 把“中断一来，硬件怎样先护住返回状态，内核再决定是否换线程”拆成慢动作；第 3 章补上了“普通程序怎样受控地进入内核、内核怎样和设备协作”的边界；第 4 章从进程隔离出发，解释怎样通过共享映射或消息通道合作，再把套接字、端口和客户端/服务器接进来；第 5 章把物理核心、逻辑 CPU、就绪队列、轮转时间片、阻塞/唤醒、每线程的栈和 SP 接回这条主干；第 6 章再从同一份主要源代码出发，补上目标操作系统环境、ABI、可执行文件格式和 CPU 指令集为什么必须同时匹配。后续学习更完整的调度策略、同步原语、分页算法或文件系统内部结构时，都可以回到这条主干继续向外扩展。
 
 ## 5. 三组贯穿操作系统的关系
 
@@ -183,7 +187,7 @@ flowchart LR
 - 线程同步原语和死锁处理（目前知道共享内存为什么需要同步，尚未展开锁、信号量等机制）；
 - 页表结构、地址转换缓存（TLB）、完整缺页处理和页面置换算法；
 - 文件系统内部数据结构和崩溃一致性；
-- 不同架构/系统的具体系统调用寄存器表、快速路径、内核入口现场保存和返回实现；
+- 不同架构/系统的具体系统调用寄存器表、快速路径、内核入口现场保存和返回实现；本次只建立“寄存器组切换”与“硬件自动保存最小返回状态”两类思路，不展开 x86、Arm 或 RISC-V 的逐指令路径；
 - 驱动实现、DMA、IOMMU 与设备中断控制器；
 - 网络协议栈、TCP/UDP 细节、可靠性与拥塞控制（目前只介绍了端口、套接字和客户端/服务器的入口关系）；
 - 账户/文件权限模型、攻击与防护（目前只介绍了硬件保护和内核检查的基础边界）；
