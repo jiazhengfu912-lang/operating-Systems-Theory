@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1510" viewBox="0 0 1600 1510" role="img" aria-labelledby="title desc">
+  <title id="title">CPU 调度如何把进程状态、队列、CPU 与磁盘 I/O 连成循环</title>
+  <desc id="desc">教学示意图。以线程 A 读取文件为例，展示新建、就绪、运行、等待 I/O 和结束等状态；就绪队列、短程调度器与派发器；CPU 时间片到期后的抢占；以及磁盘 I/O 完成后由硬件中断把等待的线程送回就绪队列。下方解释 CPU 突发和 I/O 突发，以及 CPU 密集型和 I/O 密集型工作的区别。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8fbff"/>
+      <stop offset="1" stop-color="#fffaf4"/>
+    </linearGradient>
+    <linearGradient id="ready" x1="0" x2="1">
+      <stop offset="0" stop-color="#3375c9"/>
+      <stop offset="1" stop-color="#5266c6"/>
+    </linearGradient>
+    <linearGradient id="scheduler" x1="0" x2="1">
+      <stop offset="0" stop-color="#7658bf"/>
+      <stop offset="1" stop-color="#a34c93"/>
+    </linearGradient>
+    <linearGradient id="cpu" x1="0" x2="1">
+      <stop offset="0" stop-color="#cb6d33"/>
+      <stop offset="1" stop-color="#c14b5d"/>
+    </linearGradient>
+    <linearGradient id="io" x1="0" x2="1">
+      <stop offset="0" stop-color="#278b79"/>
+      <stop offset="1" stop-color="#28739d"/>
+    </linearGradient>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#2d72d2"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#7758be"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c86b34"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#278778"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#273452" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .ui { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .h1 { font-size: 34px; font-weight: 800; fill: #17233d; }
+      .h2 { font-size: 24px; font-weight: 800; fill: #17233d; }
+      .h3 { font-size: 20px; font-weight: 800; fill: #17233d; }
+      .body { font-size: 18px; fill: #37455f; }
+      .small { font-size: 16px; fill: #53627d; }
+      .tiny { font-size: 14px; fill: #53627d; }
+      .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 16px; fill: #263653; }
+      .white { fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1510" fill="url(#bg)"/>
+
+  <!-- Header -->
+  <g filter="url(#shadow)">
+    <rect x="40" y="28" width="1520" height="96" rx="22" fill="#ffffff"/>
+  </g>
+  <text x="78" y="77" class="ui h1">CPU 调度：线程怎样在“队列、CPU 和磁盘”等待之间来回？</text>
+  <text x="78" y="106" class="ui body">用线程 A “读一个文件”的一次经历，串起状态、调度器、派发器、CPU 突发、I/O 突发和完成中断。</text>
+
+  <g filter="url(#shadow)">
+    <rect x="160" y="151" width="1280" height="60" rx="20" fill="#fff1cb" stroke="#e4b954" stroke-width="2"/>
+  </g>
+  <text x="194" y="188" class="ui h3">先记一句：</text>
+  <text x="315" y="188" class="ui body">等待磁盘不等于“CPU 也在等”。A 等 I/O 时，调度器会尽量把 CPU 交给另一个已经就绪的线程。</text>
+
+  <!-- Main continuous scene -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="245" width="1500" height="730" rx="24" fill="#ffffff" stroke="#a7c3e8" stroke-width="3"/>
+  </g>
+  <text x="82" y="290" class="ui h2">1. 一次连续场景：A 从“能跑”变成“等磁盘”，完成后再回来排队</text>
+  <text x="82" y="318" class="ui small">教学中常把状态画给“进程”；现代系统实际通常调度线程。这里把 A 看成一个可调度的执行单位。</text>
+
+  <!-- New -->
+  <g filter="url(#shadow)">
+    <rect x="84" y="365" width="190" height="122" rx="18" fill="#f4f7fb" stroke="#aebbd0" stroke-width="2"/>
+  </g>
+  <rect x="102" y="384" width="68" height="28" rx="14" fill="#68788f"/>
+  <text x="119" y="405" class="ui tiny white">状态</text>
+  <text x="104" y="441" class="ui h3">新建</text>
+  <text x="104" y="467" class="ui tiny">内核刚建立 A 的记录、</text>
+  <text x="104" y="485" class="ui tiny">内存与初始执行现场。</text>
+
+  <!-- Ready queue -->
+  <g filter="url(#shadow)">
+    <rect x="350" y="342" width="330" height="175" rx="20" fill="#f2f7ff" stroke="#83afe7" stroke-width="3"/>
+  </g>
+  <rect x="374" y="362" width="112" height="30" rx="15" fill="url(#ready)"/>
+  <text x="398" y="384" class="ui tiny white">就绪状态</text>
+  <text x="374" y="426" class="ui h2">就绪队列</text>
+  <text x="374" y="452" class="ui small">已经具备运行条件，只差一个 CPU。</text>
+  <rect x="374" y="468" width="72" height="30" rx="9" fill="#775ac3"/>
+  <rect x="454" y="468" width="72" height="30" rx="9" fill="#328bbf"/>
+  <rect x="534" y="468" width="72" height="30" rx="9" fill="#e08a3e"/>
+  <text x="397" y="489" class="ui tiny white">A</text>
+  <text x="477" y="489" class="ui tiny white">B</text>
+  <text x="557" y="489" class="ui tiny white">C</text>
+  <text x="620" y="489" class="ui tiny">队尾</text>
+  <text x="374" y="511" class="ui tiny">时间片到 / 被抢占：运行者也可能回到这里。</text>
+
+  <!-- Scheduler & dispatcher -->
+  <g filter="url(#shadow)">
+    <rect x="734" y="342" width="300" height="175" rx="20" fill="#faf6ff" stroke="#b69ce3" stroke-width="3"/>
+  </g>
+  <rect x="758" y="362" width="112" height="30" rx="15" fill="url(#scheduler)"/>
+  <text x="779" y="384" class="ui tiny white">内核工作</text>
+  <text x="758" y="426" class="ui h2">调度器 + 派发器</text>
+  <text x="758" y="452" class="ui small">调度器回答：下一位该选谁？</text>
+  <text x="758" y="476" class="ui small">派发器回答：怎样真的换上 CPU？</text>
+  <text x="758" y="502" class="ui tiny">选择规则可有 FIFO、短作业优先、优先级、轮转等。</text>
+
+  <!-- CPU -->
+  <g filter="url(#shadow)">
+    <rect x="1086" y="342" width="372" height="175" rx="20" fill="#fff8f3" stroke="#e6b17e" stroke-width="3"/>
+  </g>
+  <rect x="1110" y="362" width="110" height="30" rx="15" fill="url(#cpu)"/>
+  <text x="1134" y="384" class="ui tiny white">运行状态</text>
+  <text x="1110" y="426" class="ui h2">一个逻辑 CPU 正在跑 A</text>
+  <rect x="1110" y="448" width="323" height="42" rx="12" fill="#fff0e7" stroke="#efc79f" stroke-width="2"/>
+  <text x="1130" y="475" class="ui mono">A：计算、执行指令、修改寄存器</text>
+  <text x="1110" y="507" class="ui tiny">在同一个逻辑 CPU 的同一时刻，通常只能有一个运行中的线程。</text>
+
+  <!-- Main arrows top -->
+  <path d="M276 426 L338 426" fill="none" stroke="#2d72d2" stroke-width="5" marker-end="url(#arrowBlue)"/>
+  <text x="283" y="408" class="ui tiny">创建完成</text>
+  <path d="M682 426 L722 426" fill="none" stroke="#2d72d2" stroke-width="5" marker-end="url(#arrowBlue)"/>
+  <text x="634" y="408" class="ui tiny">取出候选</text>
+  <path d="M1036 426 L1074 426" fill="none" stroke="#7758be" stroke-width="5" marker-end="url(#arrowPurple)"/>
+  <text x="1002" y="408" class="ui tiny">恢复现场</text>
+
+  <!-- Preemption / termination -->
+  <!-- I/O waiting -->
+  <g filter="url(#shadow)">
+    <rect x="350" y="625" width="346" height="176" rx="20" fill="#f1fbf8" stroke="#8fcfc1" stroke-width="3"/>
+  </g>
+  <rect x="374" y="645" width="132" height="30" rx="15" fill="url(#io)"/>
+  <text x="394" y="667" class="ui tiny white">等待 / 阻塞状态</text>
+  <text x="374" y="710" class="ui h2">I/O 等待队列</text>
+  <text x="374" y="736" class="ui small">A 已请求读文件，现在不能继续运行。</text>
+  <rect x="374" y="753" width="138" height="30" rx="9" fill="#2a8979"/>
+  <rect x="520" y="753" width="138" height="30" rx="9" fill="#5284ba"/>
+  <text x="398" y="774" class="ui tiny white">A：等磁盘读完</text>
+  <text x="543" y="774" class="ui tiny white">D：等网络数据</text>
+
+  <!-- Disk controller -->
+  <g filter="url(#shadow)">
+    <rect x="780" y="625" width="278" height="176" rx="20" fill="#f5f8ff" stroke="#a9c1e8" stroke-width="3"/>
+  </g>
+  <rect x="804" y="645" width="118" height="30" rx="15" fill="#3978c6"/>
+  <text x="827" y="667" class="ui tiny white">硬件 / 驱动</text>
+  <text x="804" y="710" class="ui h2">设备控制器 + 磁盘</text>
+  <ellipse cx="914" cy="745" rx="80" ry="19" fill="#dbeafe" stroke="#78a7df" stroke-width="2"/>
+  <rect x="834" y="745" width="160" height="29" fill="#eef6ff" stroke="#78a7df" stroke-width="2"/>
+  <ellipse cx="914" cy="774" rx="80" ry="19" fill="#d2e7ff" stroke="#78a7df" stroke-width="2"/>
+  <text x="804" y="799" class="ui tiny">CPU 已交代“读哪里、放哪里”；设备可在后台慢慢完成。</text>
+
+  <!-- completion interrupt -->
+  <g filter="url(#shadow)">
+    <rect x="1140" y="625" width="318" height="176" rx="20" fill="#fff8f2" stroke="#e8b37e" stroke-width="3"/>
+  </g>
+  <rect x="1164" y="645" width="122" height="30" rx="15" fill="#cf6b34"/>
+  <text x="1187" y="667" class="ui tiny white">硬件中断</text>
+  <text x="1164" y="710" class="ui h2">I/O 完成通知内核</text>
+  <circle cx="1205" cy="751" r="26" fill="#fff0df" stroke="#dd9354" stroke-width="3"/>
+  <path d="M1194 752 L1203 763 L1221 739" fill="none" stroke="#c86b34" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1248" y="746" class="ui small">磁盘：A 的读请求完成</text>
+  <text x="1248" y="771" class="ui small">内核：A 等待 → 就绪</text>
+  <text x="1164" y="799" class="ui tiny">“完成中断”只是通知；A 仍要重新竞争 CPU。</text>
+
+  <!-- I/O arrows -->
+  <path d="M1210 519 C1210 590, 700 590, 650 616" fill="none" stroke="#c86b34" stroke-width="5" marker-end="url(#arrowOrange)"/>
+  <rect x="760" y="562" width="250" height="29" rx="14" fill="#fff0e4"/>
+  <text x="779" y="582" class="ui tiny">A 调用 read / write → 发起 I/O，运行 → 等待</text>
+  <path d="M698 714 L768 714" fill="none" stroke="#278778" stroke-width="5" marker-end="url(#arrowGreen)"/>
+  <text x="706" y="696" class="ui tiny">驱动提交请求</text>
+  <path d="M1060 714 L1128 714" fill="none" stroke="#278778" stroke-width="5" marker-end="url(#arrowGreen)"/>
+  <text x="1069" y="696" class="ui tiny">设备完成</text>
+  <path d="M1298 624 C1298 564, 660 590, 610 520" fill="none" stroke="#278778" stroke-width="5" stroke-dasharray="10 8" marker-end="url(#arrowGreen)"/>
+  <rect x="736" y="599" width="330" height="24" rx="12" fill="#e8f8f4"/>
+  <text x="757" y="617" class="ui tiny">中断处理：把 A 从 I/O 等待队列移回就绪队列</text>
+
+  <!-- End state -->
+  <g filter="url(#shadow)">
+    <rect x="1128" y="844" width="288" height="96" rx="18" fill="#f4f7fb" stroke="#aebbd0" stroke-width="2"/>
+  </g>
+  <text x="1152" y="884" class="ui h3">结束</text>
+  <text x="1152" y="911" class="ui small">工作完成，内核回收 A 的资源。</text>
+  <path d="M1382 519 C1382 640, 1306 727, 1273 833" fill="none" stroke="#68788f" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <text x="1393" y="586" class="ui tiny">任务结束</text>
+
+  <rect x="84" y="850" width="896" height="93" rx="16" fill="#fff8da" stroke="#e8c76c" stroke-width="2"/>
+  <text x="108" y="881" class="ui h3">队列怎样和调度连起来？</text>
+  <text x="108" y="908" class="ui small">“队列”保存处于同一种等待原因的候选项；调度器主要看就绪队列，设备完成会把等待项重新放入就绪队列。</text>
+  <text x="108" y="932" class="ui tiny">真实系统常有多个优先级队列、每核队列和不同设备队列；这张图刻意只画出最小可理解模型。</text>
+
+  <!-- Burst panel -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="1015" width="838" height="365" rx="24" fill="#ffffff" stroke="#b4c8e9" stroke-width="3"/>
+  </g>
+  <text x="82" y="1059" class="ui h2">2. CPU 突发与 I/O 突发：同一任务会在两种“忙”之间交替</text>
+  <text x="82" y="1087" class="ui small">“突发”不是爆炸，而是一段连续做同类事情的时间。</text>
+
+  <text x="82" y="1140" class="ui h3">A：读文件后处理内容</text>
+  <text x="82" y="1170" class="ui mono">时间 →</text>
+  <rect x="182" y="1146" width="170" height="48" rx="12" fill="#e77d3c"/>
+  <text x="210" y="1177" class="ui h3 white">CPU 突发</text>
+  <rect x="360" y="1146" width="270" height="48" rx="12" fill="#2d9986"/>
+  <text x="412" y="1177" class="ui h3 white">I/O 突发：等磁盘</text>
+  <rect x="638" y="1146" width="170" height="48" rx="12" fill="#e77d3c"/>
+  <text x="666" y="1177" class="ui h3 white">CPU 突发</text>
+  <text x="182" y="1220" class="ui tiny">解析参数、计算</text>
+  <text x="360" y="1220" class="ui tiny">请求已交给设备；A 在等待，通常不占 CPU</text>
+  <text x="638" y="1220" class="ui tiny">拿到数据后继续处理</text>
+
+  <rect x="82" y="1260" width="774" height="82" rx="16" fill="#f5f8ff" stroke="#c3d3ed" stroke-width="2"/>
+  <text x="106" y="1291" class="ui h3">CPU 突发（CPU burst）</text>
+  <text x="367" y="1291" class="ui body">A 真正在 CPU 上连续执行指令的一段时间。</text>
+  <text x="106" y="1320" class="ui h3">I/O 突发（I/O burst）</text>
+  <text x="367" y="1320" class="ui body">A 发起文件、磁盘、网络等 I/O 后，等待其完成的一段时间。</text>
+  <text x="106" y="1364" class="ui tiny">关键区别：I/O 突发描述的是 A 的等待阶段，不表示 CPU 在“执行 I/O 指令直到完成”。设备和驱动在幕后工作，CPU 可调度 B、C 等就绪线程。</text>
+
+  <!-- Workload types panel -->
+  <g filter="url(#shadow)">
+    <rect x="928" y="1015" width="622" height="365" rx="24" fill="#ffffff" stroke="#d0bde9" stroke-width="3"/>
+  </g>
+  <text x="960" y="1059" class="ui h2">3. 工作特点：CPU 密集 vs I/O 密集</text>
+  <text x="960" y="1087" class="ui small">它们不是两个固定“身份”，而是看一个任务大部分时间花在哪里。</text>
+
+  <text x="960" y="1140" class="ui h3">CPU 密集型：长时间计算，I/O 间隔较短</text>
+  <rect x="960" y="1155" width="334" height="36" rx="10" fill="#e77d3c"/>
+  <rect x="1302" y="1155" width="116" height="36" rx="10" fill="#2d9986"/>
+  <text x="1070" y="1180" class="ui tiny white">长 CPU 突发</text>
+  <text x="1318" y="1180" class="ui tiny white">短 I/O</text>
+  <text x="960" y="1218" class="ui small">例：视频编码、科学计算、压缩、编译（只是常见倾向）。</text>
+
+  <text x="960" y="1260" class="ui h3">I/O 密集型：经常等待输入输出</text>
+  <rect x="960" y="1275" width="116" height="36" rx="10" fill="#e77d3c"/>
+  <rect x="1084" y="1275" width="334" height="36" rx="10" fill="#2d9986"/>
+  <text x="976" y="1300" class="ui tiny white">短 CPU</text>
+  <text x="1196" y="1300" class="ui tiny white">长 I/O 等待</text>
+  <text x="960" y="1338" class="ui small">例：等待键盘、网络响应、磁盘数据的交互式程序。</text>
+  <rect x="960" y="1355" width="558" height="24" rx="12" fill="#fff2c9"/>
+  <text x="978" y="1373" class="ui tiny">调度的价值之一：让一个任务等待 I/O 时，另一个就绪任务能使用 CPU。</text>
+
+  <!-- Footer -->
+  <rect x="50" y="1412" width="1500" height="58" rx="18" fill="#f3edff" stroke="#c6b1e5" stroke-width="2"/>
+  <text x="76" y="1441" class="ui h3">现在只要记住：</text>
+  <text x="260" y="1441" class="ui body">调度器从“就绪”候选中选人，派发器负责真正切换；I/O 完成后，等待者先回就绪队列，而不是直接抢走正在运行的 CPU。</text>
+  <text x="76" y="1466" class="ui tiny">教学边界：状态名称、队列数量、是否存在“挂起”状态、抢占时机、文件缓存与 I/O 完成路径会随 Windows、Linux、CPU 架构和设备而不同；图中是解释主线的典型模型。</text>
+</svg>

@@ -1,6 +1,6 @@
 # 问题档案
 
-[返回仓库首页](../README.md) · [查看知识地图](../docs/00-operating-system-knowledge-map.md) · [第 1 章](../docs/01-from-program-to-process.md) · [第 2 章](../docs/02-cpu-context-registers-and-instructions.md) · [第 3 章](../docs/03-mmu-privilege-modes-interrupts-and-apis.md) · [第 4 章](../docs/04-process-cooperation-ipc-ports-and-client-server.md) · [第 5 章](../docs/05-multicore-scheduling-and-threads.md) · [第 6 章](../docs/06-platforms-abi-executables-and-cpu-architectures.md)
+[返回仓库首页](../README.md) · [查看知识地图](../docs/00-operating-system-knowledge-map.md) · [第 1 章](../docs/01-from-program-to-process.md) · [第 2 章](../docs/02-cpu-context-registers-and-instructions.md) · [第 3 章](../docs/03-mmu-privilege-modes-interrupts-and-apis.md) · [第 4 章](../docs/04-process-cooperation-ipc-ports-and-client-server.md) · [第 5 章](../docs/05-multicore-scheduling-and-threads.md) · [第 6 章](../docs/06-platforms-abi-executables-and-cpu-architectures.md) · [第 7 章](../docs/07-cpu-scheduling-process-states-and-io.md)
 
 问题档案保留学习的真实起点。它不是简单的问答列表，而是记录“我在哪里产生疑问、缺少了哪条概念连接、正文在哪里补上、以后怎样检查是否掌握”。
 
@@ -14,6 +14,8 @@
 | Q004 | 2026-08-22 | 独立/协作进程、IPC、消息、端口与客户端/服务器 | [进程协作、IPC、端口与客户端/服务器](../docs/04-process-cooperation-ipc-ports-and-client-server.md) | 已整理 | 待复习 |
 | Q005 | 2026-08-23 | 多核、轮转调度、CPU 利用率、栈堆、监听、并发/并行、线程与可移植性 | [多核、调度与线程](../docs/05-multicore-scheduling-and-threads.md)；并补第 1、2、4 章 | 已整理 | 待复习 |
 | Q006 | 2026-08-23 | 不同操作系统、系统调用、ABI、可执行文件与 CPU 架构 | [第 6 章：平台、ABI、可执行文件与 CPU 架构](../docs/06-platforms-abi-executables-and-cpu-architectures.md)；并补[第 3 章 6.4 节](../docs/03-mmu-privilege-modes-interrupts-and-apis.md#64-一次系统调用怎样走完整一趟) | 已整理 | 待复习 |
+| Q007 | 2026-08-24 | CPU 上下文切换、中断现场与寄存器组 | [第 2 章：CPU、上下文与指令](../docs/02-cpu-context-registers-and-instructions.md#7-cpu-如何进行上下文切换)；并补第 3、5 章 | 已整理 | 待复习 |
+| Q008 | 2026-08-24 | CPU 调度、进程状态、队列、CPU / I/O 突发与文件读写 | [第 7 章：CPU 调度、进程状态、队列与 I/O](../docs/07-cpu-scheduling-process-states-and-io.md)；并补第 3、5 章 | 已整理 | 待复习 |
 
 ## Q001：程序、进程、内存、文件与语言
 
@@ -433,9 +435,79 @@
 | --- | --- | --- | --- |
 | 尚未复习 | — | — | — |
 
+## Q008：CPU 调度、进程状态、队列与 I/O
+
+### 原始提问
+
+> 现在根据 P9 的课程文稿，以及我的下面的问题，来更新我的知识体系：
+>
+> 1. CPU 调度都有哪些策略？
+>
+> 2. 调度器是如何进行工作的？具体讲述一下先来服务算法 FIFO、最短作业优先调度、轮转调度算法、优先级调度；各种吊调度是如何紧密配合的？抢占式调度和非抢占式调度的区别？调度延迟又是什么？
+>
+> 3. 读写文件操作的底层原理是什么？
+>
+> 4. 什么是 CPU 突发？什么是 I/O 突发？
+>
+> 5. 进程都分为哪些状态？
+>
+> 6. 调度怎么跟队列紧密结合起来的？
+>
+> 7. 什么是 I/O 操作？什么是 I/O 密集型进程？什么是 CPU 密集型进程？
+
+### 本次课程材料怎样使用
+
+本次以用户提供的 P09《让电脑更流畅的调度算法》课程文稿作为“这节课正在讲什么”的学习材料。知识库没有提交原文稿，也没有大段逐字转载；第 7 章用原创图、连续场景和重新组织的解释，把文稿中的“文件复制 → I/O 等待 → 状态与队列 → 策略取舍”主线接到已有的系统调用、中断、上下文切换和轮转基础上。
+
+P09 没有逐层讲解句柄、缓存、文件系统、驱动、DMA 或持久化刷新；第 7 章中这些内容明确标为“基于文件复制例子的扩展解释”，不把它们误写成课程原话。
+
+### 显式问题
+
+1. FCFS、SJF、SRTF、RR、优先级、多级队列和多级反馈队列分别按什么规则选下一条线程？
+2. 调度器和分派器分别做什么？时间片、抢占、非抢占与调度延迟怎样连接到上下文切换？
+3. 文件读取和写入为何可能等待？缓存、内核、驱动、设备完成通知和线程唤醒怎样串起来？
+4. CPU 突发、I/O 突发和时间片各自表示什么？
+5. 新建、就绪、运行、等待 / 阻塞、终止状态之间怎样转换？
+6. 就绪队列、等待队列、设备请求队列中分别放什么？调度器怎样使用它们？
+7. I/O 操作、I/O 密集与 CPU 密集在一个真实应用中怎样区分？
+
+### 从本次问题推断的待澄清连接
+
+以下是为了安排教学顺序作出的推断，不是对学习能力的定论。
+
+| 待澄清连接 | 为什么需要先连接 | 正文位置 | 状态 |
+| --- | --- | --- | --- |
+| 可调度线程 ↔ 进程 / PCB ↔ 线程 / TCB | 课程常用“进程排队”建立直觉；不补线程层，就会误以为整个地址空间和内存跟着队列移动 | [第 7 章第 3、4 节](../docs/07-cpu-scheduling-process-states-and-io.md#3-进程更准确地说线程会经历哪些状态) | 已整理，待用自己的话区分 |
+| CPU 突发 ↔ I/O 突发 ↔ 时间片 | 不分“工作需求”和“调度上限”，会把被抢占的长计算误认成天然结束的多段 CPU 突发 | [第 7 章第 2 节](../docs/07-cpu-scheduling-process-states-and-io.md#2-cpu-突发io-突发为什么程序不会一直占着-cpu) | 已整理，待画时间线 |
+| 就绪 ↔ 运行 ↔ 等待 | I/O 完成后先变为就绪而非立刻运行；时间片到期回就绪而非等待 | [第 7 章第 3 节](../docs/07-cpu-scheduling-process-states-and-io.md#3-进程更准确地说线程会经历哪些状态) | 已整理，待演出 A / B |
+| FIFO 队列规则 ↔ FCFS 选择策略 | 两个词都带“先来”，但一个是数据结构规则，一个是调度决策 | [第 7 章第 6.1 节](../docs/07-cpu-scheduling-process-states-and-io.md#61-fifo-是结构fcfs-才是策略) | 已整理，待举一个反例 |
+| 调度器选择 ↔ 分派器切换 ↔ 上下文保存 / 恢复 | “选中了 B”不等于 B 已在 CPU 上运行；两者之间有受保护的切换成本 | [第 7 章第 5 节](../docs/07-cpu-scheduling-process-states-and-io.md#5-调度器怎样工作选择分派延迟与抢占) 与[第 2 章第 7 节](../docs/02-cpu-context-registers-and-instructions.md#7-cpu-如何进行上下文切换) | 已整理，待按七步复述 |
+| 抢占 ↔ 定时器中断 ↔ 非抢占 | 定时器让内核有机会夺回控制权；它不自动等于必定切到另一线程 | [第 7 章第 5.3 节](../docs/07-cpu-scheduling-process-states-and-io.md#53-抢占式和非抢占式谁有权把-a-请下来) | 已整理，待解释“为什么可返回 A” |
+| 优先级 ↔ RR ↔ MLQ / MLFQ ↔ 老化 | 这些不是按固定顺序串行跑的算法；要看清“先选哪一组、组内怎样轮转、何时升降级、怎样防饥饿” | [第 7 章第 6.5 节](../docs/07-cpu-scheduling-process-states-and-io.md#65-多级队列和多级反馈队列策略怎样组合而不是互相打架) | 已整理，待画层级图 |
+| 文件句柄 ↔ 系统调用 ↔ 缓存 ↔ 设备请求 ↔ 完成中断 ↔ 就绪队列 | 只说“读文件慢”会丢掉线程为何等待、何时醒来、为什么可能根本不读物理磁盘的关键过程 | [第 7 章第 8 节](../docs/07-cpu-scheduling-process-states-and-io.md#8-读写文件操作的底层原理从-read--write-到完成通知) | 已整理，待按八步复述 |
+| I/O 密集 / CPU 密集 ↔ 线程行为 ↔ 响应需求 | 它们不是永久贴给整个应用的标签；同一进程的 UI 与渲染线程可以需要不同对待 | [第 7 章第 2.3 节](../docs/07-cpu-scheduling-process-states-and-io.md#23-io-密集和-cpu-密集是什么) | 已整理，待找一个真实应用 |
+
+### Q008 的掌握标准
+
+当能够不看正文完成以下任务时，才把学习状态从“待复习”改为“已掌握”：
+
+- 用 A（复制文件）、B（播放器）、C（后台计算）演出一次 A 等 I/O、B 运行、A 完成后回就绪、B 时间片到期的完整状态变化；
+- 分别用一句话说明 FIFO、FCFS、SJF、SRTF、RR、优先级、MLQ 和 MLFQ 的核心选择规则；
+- 解释为什么 SJF 的“最优平均等待时间”必须限定在已知或准确估计下一次 CPU 突发的教科书条件内；
+- 用“调度器选谁、分派器怎样切、调度延迟在哪里花掉”复述一次上下文切换；
+- 说明一次读取命中缓存与一次需要等设备完成的读取为何不同；
+- 解释 `write` 返回成功与“断电后一定不丢”为什么不是同一承诺；
+- 完成[第 7 章末尾的情境自测](../docs/07-cpu-scheduling-process-states-and-io.md#10-情境自测)，并能解释每题原因。
+
+### Q008 后续复习记录
+
+| 日期 | 复习方式 | 结果 | 仍需澄清 |
+| --- | --- | --- | --- |
+| 尚未复习 | — | — | — |
+
 ## 后续记录规则
 
-- 新问题按 `Q007`、`Q008` 继续编号。
+- 新问题按 `Q009`、`Q010` 继续编号。
 - 保留问题原意；只修正影响阅读的标点，不把原问题改写成已经知道答案的教材标题。
 - 每条问题都要连接知识地图和详细章节。
 - “正文已写完”和“已经真正掌握”分开记录。

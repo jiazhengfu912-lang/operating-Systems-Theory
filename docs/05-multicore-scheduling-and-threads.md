@@ -1,6 +1,6 @@
 # 第 5 章：多核 CPU、轮转调度、并发与线程
 
-[返回仓库首页](../README.md) · [查看知识地图](00-operating-system-knowledge-map.md) · [查看 Q005](../questions/README.md#q005多核轮转调度线程栈堆监听与可移植性) · [回顾第 1 章：进程、内存与栈](01-from-program-to-process.md) · [回顾第 2 章：CPU 上下文](02-cpu-context-registers-and-instructions.md) · [回顾第 4 章：监听 socket](04-process-cooperation-ipc-ports-and-client-server.md)
+[返回仓库首页](../README.md) · [查看知识地图](00-operating-system-knowledge-map.md) · [查看 Q005](../questions/README.md#q005多核轮转调度线程栈堆监听与可移植性) · [回顾第 1 章：进程、内存与栈](01-from-program-to-process.md) · [回顾第 2 章：CPU 上下文](02-cpu-context-registers-and-instructions.md) · [回顾第 4 章：监听 socket](04-process-cooperation-ipc-ports-and-client-server.md) · [继续第 7 章：完整调度策略与 I/O](07-cpu-scheduling-process-states-and-io.md)
 
 ## 1. 这组问题到底在追问什么
 
@@ -118,6 +118,8 @@
 上面的单队列是为了让你看清动作，并不是对所有现代桌面系统内部队列的逐字节描述。现代通用调度器通常会加入优先级、每 CPU 队列、交互响应、负载均衡和实时策略。Linux 的确提供 `SCHED_RR` 实时轮转策略，但不能因此反推 Linux 或 Windows 的每条普通线程都只按一条全局 RR 队列运行；参见 [Linux `sched(7)`](https://man7.org/linux/man-pages/man7/sched.7.html) 和 [Microsoft 的调度优先级说明](https://learn.microsoft.com/en-us/windows/win32/procthread/scheduling-priorities)。
 
 </details>
+
+> 你后来问到的 FCFS、SJF、优先级、多级队列、反馈规则、抢占和调度延迟，已在[第 7 章](07-cpu-scheduling-process-states-and-io.md#6-cpu-调度都有哪些策略)单独展开。这里仍只保留“用 RR 建立时间片与状态变化直觉”的基础。
 
 ---
 
@@ -354,4 +356,4 @@ flowchart LR
 4. 选一个你熟悉的任务，判断它是 CPU 密集还是 I/O 密集；说出“增加线程”可能帮助什么、又可能带来什么代价。
 5. 回答第 10 节情境题后，再更新 [Q005 的复习记录](../questions/README.md#q005-后续复习记录)。
 
-本章不提前展开优先级调度的完整算法、实时调度、线程同步原语、死锁、缓存一致性、内存顺序或性能分析工具。它们已经有了位置，等你围绕它们提出具体问题时，再沿这里的“核心 → 逻辑 CPU → 线程 → 调度”主线继续接上。
+优先级、SJF、MLQ / MLFQ、状态队列、CPU / I/O 突发和文件 I/O 的调度关系，已经在[第 7 章](07-cpu-scheduling-process-states-and-io.md)展开。实时调度、具体系统的负载平衡、线程同步原语、死锁、缓存一致性、内存顺序和性能分析工具仍留待后续问题；它们会继续沿“核心 → 逻辑 CPU → 线程 → 调度”主线接上。

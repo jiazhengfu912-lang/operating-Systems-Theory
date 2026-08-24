@@ -1,6 +1,6 @@
 # 第 3 章：MMU、特权模式、中断与系统调用
 
-[返回仓库首页](../README.md) · [查看知识地图](00-operating-system-knowledge-map.md) · [问题 Q003](../questions/README.md#q003mmu特权模式中断与-api) · [Q007 的中断现场慢动作](../questions/README.md#q007cpu-上下文切换中断现场与寄存器组) · [上一章：CPU、上下文与指令](02-cpu-context-registers-and-instructions.md)
+[返回仓库首页](../README.md) · [查看知识地图](00-operating-system-knowledge-map.md) · [问题 Q003](../questions/README.md#q003mmu特权模式中断与-api) · [Q007 的中断现场慢动作](../questions/README.md#q007cpu-上下文切换中断现场与寄存器组) · [上一章：CPU、上下文与指令](02-cpu-context-registers-and-instructions.md) · [继续：调度、状态与文件 I/O](07-cpu-scheduling-process-states-and-io.md)
 
 > 本章来自 Q003。目标不是背一串名词，而是能把“按键、修改文本、点击保存”这件小事，在脑中慢慢演出来。
 
@@ -349,7 +349,7 @@ x86 的 ring、Arm 的 exception level、RISC-V 的 U/S/M 模式在角色上可�
 | 7 | 内核、设备与调度器 | 内核取得数据或提交 I/O。若必须等待磁盘、网络或锁，当前线程可以变成阻塞状态；调度器这时可去运行别的线程。 |
 | 8 | 内核与 CPU | 内核把读取到的字节数或错误结果交回；受控返回恢复用户态，原线程从系统调用之后继续执行。 |
 
-第 7 步把本章和[第 5 章的阻塞、唤醒与调度](05-multicore-scheduling-and-threads.md#3-轮转调度把就绪队列真的转起来)接了起来：系统调用不只是“跳进去、立刻跳出来”。如果资源还没准备好，线程可能暂停，之后被唤醒再继续。
+第 7 步把本章和[第 7 章的文件 I/O、等待、唤醒与调度](07-cpu-scheduling-process-states-and-io.md#8-读写文件操作的底层原理从-read--write-到完成通知)接了起来：系统调用不只是“跳进去、立刻跳出来”。如果资源还没准备好，线程可能暂停，之后被唤醒、回到就绪队列，再等待调度器选择。
 
 #### CPU 怎么知道要进哪个操作系统？
 
@@ -555,7 +555,7 @@ flowchart TB
 - 外部中断、同步异常和系统调用的区别；
 - 接口、API 和系统调用不在同一层的原因。
 
-“两个默认隔离的进程怎样通过 API、系统调用、页表映射和内核对象交换数据”，已经在[第 4 章：进程协作、IPC、端口与客户端/服务器](04-process-cooperation-ipc-ports-and-client-server.md)中展开。Q006 已把一次系统调用的共同慢动作补进本章第 6.4 节，并在[第 6 章：平台、ABI、可执行文件与 CPU 架构](06-platforms-abi-executables-and-cpu-architectures.md)说明不同系统/CPU 的二进制接口为何不同。下一批问题如果出现，最自然的延伸会是：页表怎样组织、为什么有 TLB、不同架构的具体寄存器参数表、内核怎样保存中断现场、驱动怎样与设备协作、以及调度器怎样在这些事件之后选择下一个线程。它们现在只在知识地图中定位，不提前展开。
+“两个默认隔离的进程怎样通过 API、系统调用、页表映射和内核对象交换数据”，已经在[第 4 章：进程协作、IPC、端口与客户端/服务器](04-process-cooperation-ipc-ports-and-client-server.md)中展开。Q006 已把一次系统调用的共同慢动作补进本章第 6.4 节，并在[第 6 章：平台、ABI、可执行文件与 CPU 架构](06-platforms-abi-executables-and-cpu-architectures.md)说明不同系统/CPU 的二进制接口为何不同。Q008 已继续展开“文件系统调用为何可能阻塞、I/O 完成后怎样唤醒、调度器怎样从就绪队列选择下一线程”的主线，见[第 7 章](07-cpu-scheduling-process-states-and-io.md)。页表怎样组织、为什么有 TLB、不同架构的具体寄存器参数表、具体驱动实现、DMA / IOMMU 与真实内核调度器实现仍只在知识地图中定位。
 
 继续阅读：
 
@@ -563,6 +563,7 @@ flowchart TB
 - [第 2 章：进程地址空间、上下文切换与基础保护](02-cpu-context-registers-and-instructions.md#5-什么是进程的地址空间)
 - [第 6 章：不同系统怎样运行同一份软件](06-platforms-abi-executables-and-cpu-architectures.md)
 - [第 4 章：进程协作、IPC、端口与客户端/服务器](04-process-cooperation-ipc-ports-and-client-server.md)
+- [第 7 章：CPU 调度、进程状态、队列与 I/O](07-cpu-scheduling-process-states-and-io.md)
 - [问题档案中的 Q003](../questions/README.md#q003mmu特权模式中断与-api)
 - [操作系统总体知识地图](00-operating-system-knowledge-map.md)
 
