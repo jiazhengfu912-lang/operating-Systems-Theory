@@ -555,7 +555,7 @@ flowchart TB
 - 外部中断、同步异常和系统调用的区别；
 - 接口、API 和系统调用不在同一层的原因。
 
-“两个默认隔离的进程怎样通过 API、系统调用、页表映射和内核对象交换数据”，已经在[第 4 章：进程协作、IPC、端口与客户端/服务器](04-process-cooperation-ipc-ports-and-client-server.md)中展开。Q006 已把一次系统调用的共同慢动作补进本章第 6.4 节，并在[第 6 章：平台、ABI、可执行文件与 CPU 架构](06-platforms-abi-executables-and-cpu-architectures.md)说明不同系统/CPU 的二进制接口为何不同。Q008 已继续展开“文件系统调用为何可能阻塞、I/O 完成后怎样唤醒、调度器怎样从就绪队列选择下一线程”的主线，见[第 7 章](07-cpu-scheduling-process-states-and-io.md)。页表怎样组织、为什么有 TLB、不同架构的具体寄存器参数表、具体驱动实现、DMA / IOMMU 与真实内核调度器实现仍只在知识地图中定位。
+“两个默认隔离的进程怎样通过 API、系统调用、页表映射和内核对象交换数据”，已经在[第 4 章：进程协作、IPC、端口与客户端/服务器](04-process-cooperation-ipc-ports-and-client-server.md)中展开。Q006 已把一次系统调用的共同慢动作补进本章第 6.4 节，并在[第 6 章：平台、ABI、可执行文件与 CPU 架构](06-platforms-abi-executables-and-cpu-architectures.md)说明不同系统/CPU 的二进制接口为何不同。Q008 已继续展开“文件系统调用为何可能阻塞、I/O 完成后怎样唤醒、调度器怎样从就绪队列选择下一线程”的主线，见[第 7 章](07-cpu-scheduling-process-states-and-io.md)。Q010 又把本章的 MMU 门卫直觉展开为基址/限长教学模型、分页权限、上下文切换与非法访问异常，见[第 9 章](09-memory-isolation-base-limit-and-paging.md)。多级页表、TLB 一致性、不同架构的具体寄存器参数表、具体驱动实现、DMA / IOMMU 与真实内核调度器实现仍只在知识地图中定位。
 
 继续阅读：
 
@@ -564,6 +564,7 @@ flowchart TB
 - [第 6 章：不同系统怎样运行同一份软件](06-platforms-abi-executables-and-cpu-architectures.md)
 - [第 4 章：进程协作、IPC、端口与客户端/服务器](04-process-cooperation-ipc-ports-and-client-server.md)
 - [第 7 章：CPU 调度、进程状态、队列与 I/O](07-cpu-scheduling-process-states-and-io.md)
+- [第 9 章：内存隔离、基址限长与分页保护](09-memory-isolation-base-limit-and-paging.md)
 - [问题档案中的 Q003](../questions/README.md#q003mmu特权模式中断与-api)
 - [操作系统总体知识地图](00-operating-system-knowledge-map.md)
 

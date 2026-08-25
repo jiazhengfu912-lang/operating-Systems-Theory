@@ -368,7 +368,7 @@ flowchart LR
 - 客户端、服务器与内核网络栈怎样协作；
 - 为什么安全边界不能替代同步、输入验证和业务正确性。
 
-下一批自然问题可能是：锁和信号量到底怎样避免竞态？管道和 socket 的缓冲区怎样工作？TCP 为什么可靠却仍需要应用协议？服务器如何同时处理很多客户端？这些主题已在知识地图中定位，但会等你提出具体问题后再详细展开。
+P10 已经把“共享后怎样出错”变成真实问题：[第 8 章](08-race-conditions-atomicity-and-synchronization.md)现已用共享字符串和计数器展开竞态、原子性、互斥、原子读改写和消息协议的基础方向。P11 则在[第 9 章](09-memory-isolation-base-limit-and-paging.md)继续解释默认隔离怎样由硬件执行、共享映射为何是受控例外。信号量、管道和 socket 的内部缓冲、TCP 可靠性细节及高并发服务器结构仍等后续具体问题再深入。
 
 继续阅读：
 
@@ -376,6 +376,8 @@ flowchart LR
 - [第 2 章：并发、竞态与上下文切换](02-cpu-context-registers-and-instructions.md#9-什么是-cpu-并发它如何运作)
 - [第 3 章：MMU、受控入口与 API](03-mmu-privilege-modes-interrupts-and-apis.md)
 - [第 5 章：监听线程阻塞后，CPU 怎样调度别的线程](05-multicore-scheduling-and-threads.md#3-轮转调度把就绪队列真的转起来)
+- [第 8 章：竞态条件、原子性与同步](08-race-conditions-atomicity-and-synchronization.md)
+- [第 9 章：内存隔离、基址限长与分页保护](09-memory-isolation-base-limit-and-paging.md)
 - [问题档案中的 Q004](../questions/README.md#q004进程协作ipc端口与客户端服务器)
 - [操作系统总体知识地图](00-operating-system-knowledge-map.md)
 

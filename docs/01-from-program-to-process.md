@@ -1040,4 +1040,4 @@ flowchart TB
 4. 分别说明运行一个 C 可执行文件、Rust 可执行文件、Python 脚本和 Node.js 脚本时，操作系统首先看到什么进程。
 5. 完成后把 [Q001 的复习记录](../questions/README.md#后续复习记录) 更新为实际结果。
 
-本章的“每线程栈、SP 与进程资源”已在[第 5 章：多核 CPU、轮转调度、并发与线程](05-multicore-scheduling-and-threads.md)接到调度主线；仍待以后提问的主题包括：线程同步、页表与缺页处理、文件系统缓存和持久化。它们会在对应问题出现后继续补充。
+本章的“每线程栈、SP 与进程资源”已在[第 5 章：多核 CPU、轮转调度、并发与线程](05-multicore-scheduling-and-threads.md)接到调度主线；同进程线程共享堆后怎样产生竞态，已在[第 8 章：竞态条件、原子性与同步](08-race-conditions-atomicity-and-synchronization.md)展开；不同进程的虚拟地址为何默认隔离，已在[第 9 章：内存隔离、基址限长与分页保护](09-memory-isolation-base-limit-and-paging.md)继续慢放。多级页表、完整缺页处理、文件系统缓存和持久化仍会在对应问题出现后继续补充。

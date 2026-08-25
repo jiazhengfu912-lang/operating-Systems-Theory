@@ -356,4 +356,4 @@ flowchart LR
 4. 选一个你熟悉的任务，判断它是 CPU 密集还是 I/O 密集；说出“增加线程”可能帮助什么、又可能带来什么代价。
 5. 回答第 10 节情境题后，再更新 [Q005 的复习记录](../questions/README.md#q005-后续复习记录)。
 
-优先级、SJF、MLQ / MLFQ、状态队列、CPU / I/O 突发和文件 I/O 的调度关系，已经在[第 7 章](07-cpu-scheduling-process-states-and-io.md)展开。实时调度、具体系统的负载平衡、线程同步原语、死锁、缓存一致性、内存顺序和性能分析工具仍留待后续问题；它们会继续沿“核心 → 逻辑 CPU → 线程 → 调度”主线接上。
+优先级、SJF、MLQ / MLFQ、状态队列、CPU / I/O 突发和文件 I/O 的调度关系，已经在[第 7 章](07-cpu-scheduling-process-states-and-io.md)展开；单核交错与多核并行怎样让共享字符串和计数器出现竞态，已经在[第 8 章](08-race-conditions-atomicity-and-synchronization.md)展开。实时调度、具体系统的负载平衡、死锁、缓存一致性、高级内存顺序和性能分析工具仍留待后续问题；它们会继续沿“核心 → 逻辑 CPU → 线程 → 调度 → 共享数据”主线接上。

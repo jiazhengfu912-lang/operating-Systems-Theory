@@ -1092,4 +1092,4 @@ flowchart TB
 6. 用自己的话区分 P08 中“事件来源的两种”与“硬件保护现场的两种”，并完成第 13 节第 15～19 题。
 7. 完成后更新 [Q002 的复习记录](../questions/README.md#q002-后续复习记录) 和 [Q007 的复习记录](../questions/README.md#q007-后续复习记录)。
 
-本章的“线程上下文、并发与调度”已经在[第 5 章：多核 CPU、轮转调度、并发与线程](05-multicore-scheduling-and-threads.md)继续展开；“不同操作系统、ABI、可执行文件格式与 CPU 架构为什么影响兼容性”已经在[第 6 章](06-platforms-abi-executables-and-cpu-architectures.md)展开。仍待以后提问的主题包括：优先级/实时/负载平衡等更完整调度策略、同步原语、死锁、页表与地址转换缓存（TLB）、缓存一致性、内存顺序和更深入的异常处理。
+本章的“线程上下文、并发与调度”已经在[第 5 章：多核 CPU、轮转调度、并发与线程](05-multicore-scheduling-and-threads.md)继续展开；“不同操作系统、ABI、可执行文件格式与 CPU 架构为什么影响兼容性”已经在[第 6 章](06-platforms-abi-executables-and-cpu-architectures.md)展开；普通源代码操作怎样交错成竞态，已在[第 8 章](08-race-conditions-atomicity-and-synchronization.md)展开；地址空间上下文怎样变成硬件隔离规则，已在[第 9 章](09-memory-isolation-base-limit-and-paging.md)展开。实时/负载平衡等更完整调度策略、死锁、高级内存序、多级页表和更深入的异常处理仍留待后续问题。

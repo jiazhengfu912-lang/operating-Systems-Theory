@@ -1,6 +1,6 @@
 # 操作系统知识地图
 
-[返回仓库首页](../README.md) · [第 1 章：从程序到进程](01-from-program-to-process.md) · [第 2 章：CPU、上下文与指令](02-cpu-context-registers-and-instructions.md) · [第 3 章：MMU、特权模式、中断与系统调用](03-mmu-privilege-modes-interrupts-and-apis.md) · [第 4 章：进程协作、IPC、端口与客户端/服务器](04-process-cooperation-ipc-ports-and-client-server.md) · [第 5 章：多核、调度与线程](05-multicore-scheduling-and-threads.md) · [第 6 章：平台、ABI、可执行文件与 CPU 架构](06-platforms-abi-executables-and-cpu-architectures.md) · [第 7 章：调度、状态、队列与 I/O](07-cpu-scheduling-process-states-and-io.md) · [查看问题档案](../questions/README.md)
+[返回仓库首页](../README.md) · [第 1 章：从程序到进程](01-from-program-to-process.md) · [第 2 章：CPU、上下文与指令](02-cpu-context-registers-and-instructions.md) · [第 3 章：MMU、特权模式、中断与系统调用](03-mmu-privilege-modes-interrupts-and-apis.md) · [第 4 章：进程协作、IPC、端口与客户端/服务器](04-process-cooperation-ipc-ports-and-client-server.md) · [第 5 章：多核、调度与线程](05-multicore-scheduling-and-threads.md) · [第 6 章：平台、ABI、可执行文件与 CPU 架构](06-platforms-abi-executables-and-cpu-architectures.md) · [第 7 章：调度、状态、队列与 I/O](07-cpu-scheduling-process-states-and-io.md) · [第 8 章：竞态条件、原子性与同步](08-race-conditions-atomicity-and-synchronization.md) · [第 9 章：内存隔离、基址限长与分页保护](09-memory-isolation-base-limit-and-paging.md) · [查看问题档案](../questions/README.md)
 
 ## 1. 先看全局：操作系统包含哪些“系统”
 
@@ -54,6 +54,15 @@ flowchart TB
     CURRENT7 --> POLICY7["FCFS、SJF、RR、优先级、MLQ / MLFQ"]
     CURRENT7 --> BURST7["CPU / I/O 突发、CPU / I/O 密集"]
     CURRENT7 --> FILEIO7["文件请求、缓存、等待、完成通知、唤醒"]
+    CONC --> CURRENT8["已展开：P10 竞态、原子性与基础同步"]
+    CURRENT8 --> INTERLEAVE8["非原子步骤与指令交错"]
+    CURRENT8 --> LOST8["半成品、过时判断与丢失更新"]
+    CURRENT8 --> SYNC8["减少共享、互斥、原子读改写、消息协议"]
+    MEM --> CURRENT9["已展开：P11 进程内存隔离"]
+    SEC --> CURRENT9
+    CURRENT9 --> BL9["基址 / 限长连续区教学模型"]
+    CURRENT9 --> PAGING9["分页、页表、TLB 与逐页权限"]
+    CURRENT9 --> FAULT9["非法访问 → 同步异常 → 内核处理"]
     PLATFORM --> CURRENT6["已展开：不同系统怎样运行同一份软件"]
     CURRENT6 --> OSNOW["Windows、macOS、Linux 环境"]
     CURRENT6 --> ABINOW["API、ABI、系统调用 ABI"]
@@ -64,7 +73,7 @@ flowchart TB
     classDef current fill:#d9ead3,stroke:#38761d,color:#222;
     classDef framework fill:#d9eaf7,stroke:#3d85c6,color:#222;
     class OS root;
-    class CURRENT1,CURRENT2,CURRENT3,CURRENT4,CURRENT5,CURRENT6,CURRENT7,MEMNOW,FILENOW,RUNTIME,CPUNOW,IRQCTX7,CONCNOW,MMUNOW,PRIVNOW,ENTRYNOW,IONOW,IPCNOW,SHMNOW,MSGNOW,NETNOW,CORENOW,RRNOW,PARANOW,STACKNOW,STATE7,QUEUE7,POLICY7,BURST7,FILEIO7,OSNOW,ABINOW,IMAGENOW,ISANOW current;
+    class CURRENT1,CURRENT2,CURRENT3,CURRENT4,CURRENT5,CURRENT6,CURRENT7,CURRENT8,CURRENT9,MEMNOW,FILENOW,RUNTIME,CPUNOW,IRQCTX7,CONCNOW,MMUNOW,PRIVNOW,ENTRYNOW,IONOW,IPCNOW,SHMNOW,MSGNOW,NETNOW,CORENOW,RRNOW,PARANOW,STACKNOW,STATE7,QUEUE7,POLICY7,BURST7,FILEIO7,INTERLEAVE8,LOST8,SYNC8,BL9,PAGING9,FAULT9,OSNOW,ABINOW,IMAGENOW,ISANOW current;
     class BASE,EXEC,CPU,MEM,CONC,FS,IO,SEC,NET,VIRT,BOOT,PLATFORM framework;
 ```
 
@@ -77,11 +86,11 @@ flowchart TB
 | 基础边界 | 应用程序为什么不能随意操作硬件？怎样请求内核服务？ | 已学习用户态/内核态、模式位、API、系统调用、同步异常和外部中断的基础关系 | 部分已整理 |
 | 程序、进程与线程 | 磁盘上的代码怎样成为正在执行的活动？谁拥有资源，谁真正执行指令？ | 已学习进程、线程、PID、PCB 与 TCB 的基本关系，也补上每线程的栈、SP 与执行状态 | 已整理 |
 | CPU 管理 | 多个可运行线程怎样轮流获得 CPU？切换时保存什么？ | 已学习物理核心、逻辑 CPU、时间片轮转、阻塞/唤醒与“线程通常是被调度单位”的基础；也已拆开中断入口、硬件先保护最小返回状态、内核补齐线程现场与调度决定的先后关系；Q008 再把状态、队列、FCFS/SJF/RR/优先级/反馈队列、抢占和调度延迟接进来 | 已整理，待复习 |
-| 内存管理 | 每个进程怎样获得看似独立的地址空间？内存不够时怎么办？ | 已学习虚拟地址空间、页表规则、MMU 翻译与权限检查的直觉 | 部分已整理 |
-| 并发与同步 | 多个执行流同时访问共享数据时，怎样保持正确？ | 已学习单逻辑 CPU 的并发、多逻辑 CPU 的并行、抢占和竞态的基础，也知道共享内存协作仍需同步；同步原语仍待展开 | 部分已整理 |
+| 内存管理 | 每个进程怎样获得看似独立的地址空间？内存不够时怎么办？ | 已学习虚拟地址空间、页表规则、MMU 翻译与权限检查；Q010 又用基址/限长连续区建立硬件门禁直觉，并对照分页、TLB 与逐页 R/W/X 权限 | 已整理到隔离与分页保护主线，待复习 |
+| 并发与同步 | 多个执行流同时访问共享数据时，怎样保持正确？ | Q009 已展开非原子步骤、单核交错、多核并行、半成品、丢失更新、过时标志，以及减少共享、互斥、原子读改写和消息协议的选择方向 | 已整理到基础同步，待复习 |
 | 文件与存储 | 字节怎样长期保存在设备上？路径、文件和目录怎样组织？ | 已学习进程怎样通过句柄打开 txt 文件，也已接上一次典型 `read` / `write` 的“缓存判断 → 必要时请求设备 → 等待 → 完成通知 → 重新就绪”主线 | 部分已整理 |
 | 设备与 I/O | 键盘、屏幕、磁盘、串口和网卡怎样与软件协作？ | 已学习“应用请求 → 内核 / 驱动 → 设备完成通知”的基础链路，以及 I/O 等待怎样释放 CPU、完成后怎样唤醒线程；DMA、IOMMU、设备调度仍待展开 | 部分已整理 |
-| 保护与安全 | 谁能访问哪些进程、内存、文件和设备？ | 已学习特权级、MMU 权限、异常、内核检查，以及 IPC 端点不等于自动授权的基础边界 | 部分已整理 |
+| 保护与安全 | 谁能访问哪些进程、内存、文件和设备？ | 已学习特权级、MMU 权限、异常和内核检查；Q010 再把越权读写、特权保护状态、默认隔离与共享内存受控例外接成完整链路 | 已整理到进程内存隔离，待复习 |
 | 网络子系统 | 进程怎样跨机器交换数据？ | 已学习套接字、端口、监听、客户端/服务器的入门关系；协议栈和网络可靠性仍待展开 | 部分已整理 |
 | 平台与二进制兼容 | 为什么同一软件在不同系统和 CPU 上常要准备不同成品？ | 已学习 Windows、macOS、Linux 环境，API/ABI、PE/ELF/Mach-O、`.exe` 和 x86-64/Arm64 怎样共同决定原生兼容性 | 已整理，待复习 |
 | 虚拟化与容器 | 怎样在一台机器上构造多个隔离的运行环境？ | 它们会进一步隔离或虚拟化进程看到的资源 | 框架 |
@@ -133,15 +142,21 @@ flowchart LR
     POLICY7 --> SCHED
     THREAD --> BURST7["CPU 突发 / I/O 突发"]
     BURST7 --> BLOCKED
+    THREAD --> SHARED8["同进程线程共享堆 / 全局数据"]
+    SHARED8 --> RACE8["非原子交错：半成品、丢失更新、过时判断"]
+    RACE8 --> SYNC8["减少共享、互斥、原子读改写、消息协议"]
     THREAD --> SP["每线程的栈与栈指针 SP"]
     CPU --> REGS["通用寄存器、程序计数器、状态寄存器"]
     CPU --> MODE["模式位 / 特权级"]
     CPU --> VADDR["当前线程产生虚拟地址"]
     PROCESS --> VAS["虚拟地址空间"]
+    VAS --> BL9["P11 教学模型：一个基址 / 限长连续区域"]
     VAS -. "由映射规则描述" .-> PT["页表、映射与访问权限"]
     KERNEL["内核检查、调度与驱动"] --> PT
     VADDR --> MMU["MMU 按规则翻译和检查"]
     PT --> MMU
+    PT --> PAGE9["分页：逐页映射与 User / R / W / X 权限"]
+    PAGE9 --> MMU
     MMU --> RAM["允许时访问经映射的物理内存"]
     VAS --> FILEMAP["也可能由可执行文件或映射文件支持"]
     MMU --> EXCEPTION["当前访问不能直接完成<br/>时产生同步异常"]
@@ -171,7 +186,7 @@ flowchart LR
     LISTENER --> SERVER["服务器进程：处理并响应"]
 ```
 
-第 1 章从磁盘上的程序开始，沿着操作系统创建进程的过程连接到内存和文件；第 2 章再从线程追踪到 CPU、寄存器、上下文和基础保护，并在 Q007 把“中断一来，硬件怎样先护住返回状态，内核再决定是否换线程”拆成慢动作；第 3 章补上了“普通程序怎样受控地进入内核、内核怎样和设备协作”的边界；第 4 章从进程隔离出发，解释怎样通过共享映射或消息通道合作，再把套接字、端口和客户端/服务器接进来；第 5 章把物理核心、逻辑 CPU、就绪队列、轮转时间片、阻塞/唤醒、每线程的栈和 SP 接回这条主干；第 6 章再从同一份主要源代码出发，补上目标操作系统环境、ABI、可执行文件格式和 CPU 指令集为什么必须同时匹配；第 7 章则把“CPU / I/O 突发 → 线程状态 → 就绪 / 等待队列 → 调度策略 → 上下文切换 → 文件 I/O 完成通知”演成一条连续过程。后续学习实时调度、同步原语、分页算法或文件系统内部结构时，都可以回到这条主干继续向外扩展。
+第 1 章从磁盘上的程序开始，沿着操作系统创建进程的过程连接到内存和文件；第 2 章再从线程追踪到 CPU、寄存器、上下文和基础保护，并在 Q007 把“中断一来，硬件怎样先护住返回状态，内核再决定是否换线程”拆成慢动作；第 3 章补上了“普通程序怎样受控地进入内核、内核怎样和设备协作”的边界；第 4 章从进程隔离出发，解释怎样通过共享映射或消息通道合作，再把套接字、端口和客户端/服务器接进来；第 5 章把物理核心、逻辑 CPU、就绪队列、轮转时间片、阻塞/唤醒、每线程的栈和 SP 接回这条主干；第 6 章再从同一份主要源代码出发，补上目标操作系统环境、ABI、可执行文件格式和 CPU 指令集为什么必须同时匹配；第 7 章则把“CPU / I/O 突发 → 线程状态 → 就绪 / 等待队列 → 调度策略 → 上下文切换 → 文件 I/O 完成通知”演成一条连续过程；第 8 章继续追踪多个线程访问共享可变状态时，非原子步骤怎样交错成竞态，以及互斥、原子读改写和所有权怎样建立秩序；第 9 章再把进程之间的默认隔离慢放成“内核配置地址规则 → CPU/MMU 每次检查 → 允许访问或同步异常”，并区分基址/限长教学模型与现代分页保护。后续学习实时调度、高级同步、页面置换或文件系统内部结构时，都可以回到这条主干继续向外扩展。
 
 ## 5. 三组贯穿操作系统的关系
 
@@ -193,14 +208,15 @@ flowchart LR
 - 同一程序的只读代码物理页可能由多个进程共享。
 - 同一进程内的线程通常共享代码、全局数据、堆和打开资源，但每个线程有自己的寄存器状态和栈。
 - 两个进程若要合作，需要内核建立受控的共享映射或消息通道；共享的是明确允许的区域或交接的数据，不是默认开放彼此整个地址空间。
+- “已经获准共享”只回答能否访问；多个线程或进程怎样避免同时破坏共享数据，还要由互斥、原子操作、所有权或通信协议保证。
 
 ## 6. 当前边界
 
 本地图只回答“操作系统有哪些主要部分、它们和当前问题怎样连接”。以下主题尚未详细展开：
 
 - 实时调度、负载平衡、CPU 亲和性、NUMA，以及 Linux / Windows / macOS 的具体调度器实现（已学习经典策略、状态、队列与文件 I/O 主线）；
-- 线程同步原语和死锁处理（目前知道共享内存为什么需要同步，尚未展开锁、信号量等机制）；
-- 页表结构、地址转换缓存（TLB）、完整缺页处理和页面置换算法；
+- 高级线程同步与死锁处理（已学习互斥量、原子读改写、不可变快照和消息协议的选择方向；尚未展开信号量、条件变量、读写锁、屏障、无锁算法、完整内存序和死锁）；
+- 多级页表具体结构、TLB 一致性、完整缺页处理和页面置换算法（已学习分页映射、TLB 作用和逐页 R/W/X 权限的主线）；
 - 文件系统内部数据结构、崩溃一致性和具体持久化保证（已区分缓存中的 `write` 与稳定落盘）；
 - 不同架构/系统的具体系统调用寄存器表、快速路径、内核入口现场保存和返回实现；本次只建立“寄存器组切换”与“硬件自动保存最小返回状态”两类思路，不展开 x86、Arm 或 RISC-V 的逐指令路径；
 - 驱动实现、DMA、IOMMU 与设备中断控制器；

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">共享字符串怎样在一次线程交错中变成半成品</title>
+  <desc id="desc">写线程把六个 A 逐步改成六个 B，在只写完前三格时暂停；读线程此时复制，得到三个 B 和三个 A 组成的中间状态。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#3d5a80"/>
+    </marker>
+    <style>
+      .title { font: 700 30px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #17324d; }
+      .subtitle { font: 17px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #52677a; }
+      .label { font: 700 20px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #17324d; }
+      .text { font: 17px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #263746; }
+      .small { font: 15px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #52677a; }
+      .cell { font: 700 24px Consolas, monospace; text-anchor: middle; dominant-baseline: middle; }
+      .step { font: 700 18px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #ffffff; text-anchor: middle; dominant-baseline: middle; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="720" fill="#f7fafc"/>
+  <rect x="36" y="30" width="1128" height="76" rx="16" fill="#eaf2f8" stroke="#9ebad0"/>
+  <text x="600" y="65" class="title" text-anchor="middle">共享字符串竞态：正确的旧值和新值之间，还有可见的半成品</text>
+  <text x="600" y="91" class="subtitle" text-anchor="middle">P10 教学场景：写线程 W 更新，读线程 R 在同步缺失时插入</text>
+
+  <line x1="145" y1="160" x2="1100" y2="160" stroke="#8ca3b7" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="78" y="167" class="label">时间</text>
+
+  <rect x="48" y="200" width="1104" height="182" rx="18" fill="#fff7e6" stroke="#e0a647" stroke-width="2"/>
+  <text x="78" y="235" class="label">写线程 W</text>
+  <text x="78" y="264" class="small">目标：AAAAAA → BBBBBB</text>
+
+  <circle cx="245" cy="160" r="20" fill="#4f7cac"/>
+  <text x="245" y="161" class="step">1</text>
+  <text x="208" y="228" class="text">开始前</text>
+
+  <circle cx="557" cy="160" r="20" fill="#4f7cac"/>
+  <text x="557" y="161" class="step">2</text>
+  <text x="468" y="228" class="text">只写完前三格</text>
+
+  <circle cx="902" cy="160" r="20" fill="#4f7cac"/>
+  <text x="902" y="161" class="step">4</text>
+  <text x="821" y="228" class="text">恢复并最终写完</text>
+
+  <g transform="translate(145 275)">
+    <rect x="0" y="0" width="54" height="54" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <rect x="58" y="0" width="54" height="54" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <rect x="116" y="0" width="54" height="54" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <rect x="174" y="0" width="54" height="54" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <rect x="232" y="0" width="54" height="54" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <rect x="290" y="0" width="54" height="54" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <text x="27" y="29" class="cell" fill="#315b7d">A</text><text x="85" y="29" class="cell" fill="#315b7d">A</text>
+    <text x="143" y="29" class="cell" fill="#315b7d">A</text><text x="201" y="29" class="cell" fill="#315b7d">A</text>
+    <text x="259" y="29" class="cell" fill="#315b7d">A</text><text x="317" y="29" class="cell" fill="#315b7d">A</text>
+  </g>
+
+  <g transform="translate(492 275)">
+    <rect x="0" y="0" width="54" height="54" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <rect x="58" y="0" width="54" height="54" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <rect x="116" y="0" width="54" height="54" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <rect x="174" y="0" width="54" height="54" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <rect x="232" y="0" width="54" height="54" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <rect x="290" y="0" width="54" height="54" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <text x="27" y="29" class="cell" fill="#8e2929">B</text><text x="85" y="29" class="cell" fill="#8e2929">B</text>
+    <text x="143" y="29" class="cell" fill="#8e2929">B</text><text x="201" y="29" class="cell" fill="#315b7d">A</text>
+    <text x="259" y="29" class="cell" fill="#315b7d">A</text><text x="317" y="29" class="cell" fill="#315b7d">A</text>
+  </g>
+
+  <g transform="translate(838 275)">
+    <rect x="0" y="0" width="44" height="54" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <rect x="48" y="0" width="44" height="54" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <rect x="96" y="0" width="44" height="54" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <rect x="144" y="0" width="44" height="54" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <rect x="192" y="0" width="44" height="54" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <rect x="240" y="0" width="44" height="54" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <text x="22" y="29" class="cell" fill="#8e2929">B</text><text x="70" y="29" class="cell" fill="#8e2929">B</text>
+    <text x="118" y="29" class="cell" fill="#8e2929">B</text><text x="166" y="29" class="cell" fill="#8e2929">B</text>
+    <text x="214" y="29" class="cell" fill="#8e2929">B</text><text x="262" y="29" class="cell" fill="#8e2929">B</text>
+  </g>
+
+  <rect x="48" y="408" width="1104" height="188" rx="18" fill="#eaf7ee" stroke="#4d9b63" stroke-width="2"/>
+  <text x="78" y="447" class="label">读线程 R</text>
+  <circle cx="690" cy="160" r="20" fill="#b84747"/>
+  <text x="690" y="161" class="step">3</text>
+  <line x1="690" y1="182" x2="690" y2="421" stroke="#b84747" stroke-width="3" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+  <text x="718" y="405" class="text">此时插入读取</text>
+
+  <text x="170" y="486" class="text">R 逐格复制当前可见内容</text>
+  <line x1="415" y1="480" x2="585" y2="480" stroke="#3d5a80" stroke-width="3" marker-end="url(#arrow)"/>
+  <g transform="translate(610 453)">
+    <rect x="0" y="0" width="58" height="58" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <rect x="62" y="0" width="58" height="58" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <rect x="124" y="0" width="58" height="58" rx="6" fill="#f7c9c9" stroke="#b84747"/>
+    <rect x="186" y="0" width="58" height="58" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <rect x="248" y="0" width="58" height="58" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <rect x="310" y="0" width="58" height="58" rx="6" fill="#dbe9f6" stroke="#4f7cac"/>
+    <text x="29" y="31" class="cell" fill="#8e2929">B</text><text x="91" y="31" class="cell" fill="#8e2929">B</text>
+    <text x="153" y="31" class="cell" fill="#8e2929">B</text><text x="215" y="31" class="cell" fill="#315b7d">A</text>
+    <text x="277" y="31" class="cell" fill="#315b7d">A</text><text x="339" y="31" class="cell" fill="#315b7d">A</text>
+  </g>
+  <text x="794" y="543" class="label" text-anchor="middle" fill="#8e2929">R 得到程序从未发布过的 BBBAAA</text>
+
+  <rect x="48" y="622" width="1104" height="62" rx="14" fill="#17324d"/>
+  <text x="600" y="649" class="label" style="fill:#ffffff" text-anchor="middle">根因不是字符串最终有没有写对，而是更新中间状态能否被另一个线程观察</text>
+  <text x="600" y="674" class="small" style="fill:#dce9f3" text-anchor="middle">互斥临界区、原子发布或单一所有者协议，必须让“完整旧值 / 完整新值”成为可观察边界</text>
+</svg>
